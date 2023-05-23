@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import "./globals.css";
 import { Inter } from "next/font/google";
 
@@ -20,7 +21,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.variable}>{children}</body>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          inter.variable
+        )}
+      >
+        {children}
+      </body>
     </html>
   );
 }

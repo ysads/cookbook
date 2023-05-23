@@ -25,7 +25,7 @@ export default function Home() {
       </h1>
       <Suspense fallback={<TablePlaceholder />}>
         {/* @ts-expect-error Async Server Component */}
-        <Table />
+        {/* <Table /> */}
       </Suspense>
       <p className="font-light text-gray-600 w-full max-w-lg text-center mt-6">
         <Link
