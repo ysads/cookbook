@@ -13,10 +13,59 @@ datasource db {
   shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
 }
 
-model users {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  image     String
-  createdAt DateTime @default(now())
+enum Course {
+  BREAKFAST
+  MAIN
+  DRINK
+  SALAD
+  SIDE
+  SNACK
+  SOUP
+  DESSERT
+  OTHER
+}
+
+model Recipe {
+  id            Int       @id @default(autoincrement())
+  title         String
+  source        String
+  sourceUrl     String
+  imageUrl      String
+  servings      Float
+  time          String
+  courses       Course[]
+  keywords      String[]
+  instructions  String[]
+  ingredients   Ingredient[]
+  ingreds       String[]  // TODO: we may not need this
+  fodmap        Fodmap?
+  notes         String[]
+  original      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  postedAt      DateTime? @default(now())
+}
+
+model Fodmap {
+  id          Int       @id @default(autoincrement())
+  fructans    Float
+  galactans   Float
+  lactose     Float
+  polyols     Float
+  fructose    Float
+  recipeId    Int       @unique
+  recipe      Recipe    @relation(fields: [recipeId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Ingredient {
+  id         Int        @id @default(autoincrement())
+  name        String
+  amount      Float
+  unit        String
+  recipeId    Int
+  recipe      Recipe    @relation(fields: [recipeId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
