@@ -35,6 +35,7 @@ model Recipe {
   time          String
   courses       Course[]
   keywords      String[]
+  // FIXME: what if we have multiple groups of instructions?
   instructions  String[]
   ingredients   Ingredient[]
   ingreds       String[]  // TODO: we may not need this

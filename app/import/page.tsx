@@ -27,12 +27,11 @@ export default function Import() {
       setParsed((await response.json()) as unknown as BaseRecipe);
     } else {
     }
-
     console.log(response);
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col p-10">
+    <main className="relative flex min-h-screen flex-col">
       <h1 className="scroll-m-20 text-4xl font-bold tracking-tight">Import</h1>
       <form className="mt-16" onSubmit={handleSubmit}>
         <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -57,7 +56,12 @@ export default function Import() {
       {parsed ? (
         <>
           <Separator className="mt-6" />
-          <img className="mt-6" src={parsed.imageUrl} width={400} />
+          <img
+            className="mt-6"
+            src={parsed.imageUrl}
+            width={400}
+            alt={parsed.title}
+          />
           <ScrollArea
             className={cn(
               "mt-2 h-[400px] w-full rounded-md border p-4 text-xs bg-slate-200/75",
