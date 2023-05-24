@@ -1,8 +1,9 @@
 import { JSDOM } from "jsdom";
 import { fodmapFormulaNew } from "./fodmap-formula-new";
 import { fodmapFormulaOld } from "./fodmap-formula-old";
+import { fodmapEveryday } from "./fodmap-everyday";
 
-const parsers = [fodmapFormulaNew, fodmapFormulaOld];
+const parsers = [fodmapFormulaNew, fodmapFormulaOld, fodmapEveryday];
 
 export async function importRecipe(url: string) {
   const page = await (await fetch(url)).text();

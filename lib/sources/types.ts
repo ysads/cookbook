@@ -1,14 +1,14 @@
 import { Ingredient, Recipe } from "@prisma/client";
 import { Unpersisted } from "../types";
 
-const SOURCES = ["fodmap-formula"] as const;
+const SOURCES = ["fodmap-formula", "fodmap-everyday"] as const;
 
-export type Sources = (typeof SOURCES)[number];
+export type Source = (typeof SOURCES)[number];
 
 export type BaseIngredient = Unpersisted<Ingredient | "recipeId">;
 
 export type BaseRecipe = Unpersisted<Recipe> & {
-  source: Sources;
+  source: Source;
   ingredients?: BaseIngredient[];
 };
 
