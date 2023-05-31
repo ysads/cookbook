@@ -3,9 +3,13 @@
 import { Parser } from "./types";
 
 export const fodmapFormulaNew: Parser = {
+  canList: () => false,
+
   canParse: ({ document, url }) =>
     url.includes("fodmapformula.com") &&
     Boolean(document.querySelector(".tasty-recipes-entry-header")),
+
+  list: () => [],
 
   parse({ document, url }) {
     const title = document.querySelector("h1.entry-title")?.textContent || url;

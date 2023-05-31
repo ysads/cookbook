@@ -26,25 +26,22 @@ enum Course {
 }
 
 model Recipe {
-  id            Int       @id @default(autoincrement())
-  title         String
-  source        String
-  sourceUrl     String
-  imageUrl      String
-  servings      Float
-  time          String
-  courses       Course[]
-  keywords      String[]
-  // FIXME: what if we have multiple groups of instructions?
-  instructions  String[]
-  ingredients   Ingredient[]
-  ingreds       String[]  // TODO: we may not need this
-  fodmap        Fodmap?
-  notes         String[]
-  original      String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  postedAt      DateTime? @default(now())
+  id                Int       @id @default(autoincrement())
+  title             String
+  source            String
+  sourceUrl         String
+  servings          Float
+  time              String
+  imageUrl          String
+  courses           Course[]
+  keywords          String[]
+  instructionSets   InstructionSet[]
+  ingredientSets    IngredientSet[]
+  fodmap            Fodmap?
+  notes             String[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  postedAt          DateTime? @default(now())
 }
 
 model Fodmap {
@@ -60,13 +57,31 @@ model Fodmap {
   updatedAt   DateTime  @updatedAt
 }
 
-model Ingredient {
-  id         Int        @id @default(autoincrement())
-  name        String
-  amount      Float
-  unit        String
+model IngredientSet {
+  id          Int        @id @default(autoincrement())
+  name        String?
+  ingreds     String[]
   recipeId    Int
   recipe      Recipe    @relation(fields: [recipeId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model InstructionSet {
+  id            Int        @id @default(autoincrement())
+  name          String?
+  instructions  String[]
+  recipeId      Int
+  recipe        Recipe    @relation(fields: [recipeId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model RecipeImport {
+  id          Int       @id @default(autoincrement())
+  url         String
+  status      String
+  errors      Json?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

@@ -3,9 +3,8 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 
 export const metadata = {
-  title: "Vercel Postgres Demo with Prisma",
-  description:
-    "A simple Next.js app with Vercel Postgres as the database and Prisma as the ORM",
+  title: "Cookbook",
+  description: "A collection of low fodmap recipes",
 };
 
 const inter = Inter({
@@ -23,7 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased p-10",
+          "h-screen bg-background font-sans antialiased flex-1 p-8",
           inter.variable
         )}
       >

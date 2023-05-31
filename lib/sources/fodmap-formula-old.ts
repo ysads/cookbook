@@ -7,9 +7,13 @@ import { last } from "../utils";
 import { Parser } from "./types";
 
 export const fodmapFormulaOld: Parser = {
+  canList: () => false,
+
   canParse: ({ document, url }) =>
     url.includes("fodmapformula.com") &&
     Boolean(document.querySelector(".wprm-recipe")),
+
+  list: () => [],
 
   parse({ document, url }) {
     const title = document.querySelector("h1.entry-title")?.textContent || url;
