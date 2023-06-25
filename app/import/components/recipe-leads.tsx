@@ -25,7 +25,7 @@ export default function RecipeLeads() {
   }
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-3">
+    <>
       <p className="text-lg font-semibold leading-tight px-3 pt-5">
         Search fodmap recipes
       </p>
@@ -56,7 +56,7 @@ export default function RecipeLeads() {
         : leads.length
         ? leads.map((lead) => <RecipeLead key={lead.url} lead={lead} />)
         : null}
-    </div>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import { Martian_Mono } from "next/font/google";
 import RecipeLeads from "./components/recipe-leads";
+import RecipeForm from "./components/recipe-form";
 
 const martianMono = Martian_Mono({ subsets: ["latin"] });
 
@@ -11,10 +12,12 @@ export default function Import() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-8 lg:grid-cols-12 grow">
-        <RecipeLeads />
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-3">
+          <RecipeLeads />
+        </div>
 
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-9">
-          meninas
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-9 px-4">
+          <RecipeForm />
         </div>
       </div>
 
