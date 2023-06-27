@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ListOutput } from "@/lib/sources";
+import { ListOutput, ParserOutput } from "@/lib/sources";
 import { RecipeLead } from "@/lib/sources/types";
 import { Edit } from "lucide-react";
 import { useState } from "react";
 
-export default function RecipeLeads() {
+type Props = {
+  onImport: (parsed: ParserOutput) => void;
+};
+
+export default function RecipeLeads(props: Props) {
   const [leads, setLeads] = useState<RecipeLead[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [url, setUrl] = useState<string>("");
@@ -21,6 +25,17 @@ export default function RecipeLeads() {
       const data = (await res.json()) as unknown as ListOutput;
       setLeads(data.list);
       setIsLoading(false);
+    });
+  }
+
+  async function importRecipe(lead: RecipeLead) {
+    fetch("/import/api", {
+      method: "post",
+      body: JSON.stringify({ url: lead.url }),
+    }).then(async (res) => {
+      if (res.ok) {
+        props.onImport(await res.json());
+      }
     });
   }
 
@@ -47,6 +62,9 @@ export default function RecipeLeads() {
             Search
           </Button>
         </form>
+        <Button className="absolute top-2 right-2" size="lg" variant="default">
+          Start Import
+        </Button>
       </div>
       <Separator className="w-full" />
       {isLoading
@@ -54,13 +72,19 @@ export default function RecipeLeads() {
             .fill(0)
             .map((_, index) => <RecipeLeadSkeleton key={index} />)
         : leads.length
-        ? leads.map((lead) => <RecipeLead key={lead.url} lead={lead} />)
+        ? leads.map((lead) => (
+            <RecipeLead
+              key={lead.url}
+              lead={lead}
+              onImport={() => importRecipe(lead)}
+            />
+          ))
         : null}
     </div>
   );
 }
 
-function RecipeLead(props: { lead: RecipeLead }) {
+function RecipeLead(props: { lead: RecipeLead; onImport: () => void }) {
   return (
     <>
       <div className="flex items-center space-x-4 p-3">
@@ -72,7 +96,11 @@ function RecipeLead(props: { lead: RecipeLead }) {
         <div className="flex flex-col gap-2 h-full grow">
           <p className="text-sm font-medium leading-5">{props.lead.title}</p>
           <p className="flex justify-between">
-            <Button className="rounded-full w-8 h-8 p-2" variant="secondary">
+            <Button
+              className="rounded-full w-8 h-8 p-2"
+              variant="secondary"
+              onClick={props.onImport}
+            >
               <Edit />
             </Button>
           </p>

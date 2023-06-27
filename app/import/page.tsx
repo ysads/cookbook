@@ -1,9 +1,16 @@
+"use client";
+
 import { Martian_Mono } from "next/font/google";
 import RecipeLeads from "./components/recipe-leads";
+import RecipeImport from "./components/recipe-import";
+import { ParserOutput } from "@/lib/sources";
+import { useState } from "react";
 
 const martianMono = Martian_Mono({ subsets: ["latin"] });
 
 export default function Import() {
+  const [parsed, setParsed] = useState<ParserOutput | null>(null);
+
   return (
     <main className="relative flex h-full flex-col space-y-4">
       <div className="flex items-center justify-between space-y-2">
@@ -11,11 +18,8 @@ export default function Import() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-8 lg:grid-cols-12 grow">
-        <RecipeLeads />
-
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-9">
-          meninas
-        </div>
+        <RecipeLeads onImport={(p) => setParsed(p)} />
+        {parsed && <RecipeImport key={parsed.url} parsed={parsed} />}
       </div>
 
       {/* {parsed?.status === "success" || parsed?.status === "error" ? (

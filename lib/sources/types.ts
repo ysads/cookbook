@@ -2,7 +2,7 @@ import { Course, IngredientSet, InstructionSet, Recipe } from "@prisma/client";
 import { DeepNullish, Unpersisted } from "../types";
 import { z } from "zod";
 
-const SOURCES = ["fodmap-formula", "fodmap-everyday"] as const;
+export const SOURCES = ["fodmap-formula", "fodmap-everyday"] as const;
 
 export type Source = (typeof SOURCES)[number];
 
@@ -15,7 +15,7 @@ export type RecipeImport = Unpersisted<Recipe> & {
 export const recipeImportSchema = z.object({
   title: z.string().nonempty(),
   time: z.string().nonempty(),
-  servings: z.number().min(1),
+  servings: z.coerce.number().min(1),
   ingredientSets: z
     .object({ name: z.string(), ingreds: z.string().array().min(1) })
     .array()
