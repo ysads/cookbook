@@ -1,21 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { ListOutput, ParserOutput } from "@/lib/sources";
-import { RecipeLead, SOURCES, recipeImportSchema } from "@/lib/sources/types";
-import { ListPlus, X, FolderX, FolderPlus } from "lucide-react";
-import { useEffect, useRef } from "react";
 import {
   Form,
   FormControl,
@@ -25,66 +10,91 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { z } from "zod";
-import { Control, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Control, useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Martian_Mono } from "next/font/google";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { SOURCES } from "@/lib/sources/types";
+import { ParserOutput } from "@/lib/sources";
+import { Course } from "@prisma/client";
 import { COURSES } from "@/lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AlertCircle, FolderPlus, FolderX, ListPlus, X } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
-const martianMono = Martian_Mono({ subsets: ["latin"] });
+const schema = z.object({
+  title: z.string().nonempty(),
+  time: z.string().nonempty(),
+  servings: z.coerce.number().min(1),
+  ingredientSets: z
+    .array(
+      z.object({
+        name: z.string().nullish(),
+        ingreds: z.object({ value: z.string() }).array().min(1),
+      })
+    )
+    .min(1),
+  instructionSets: z
+    .array(
+      z.object({
+        name: z.string(),
+        instructions: z.object({ value: z.string() }).array().min(1),
+      })
+    )
+    .min(1),
+  imageUrl: z.string().url(),
+  notes: z.array(z.object({ value: z.string() })),
+  postedAt: z.string().datetime().nullish(),
+  // keywords: z.string().array(),
+  courses: z.array(z.nativeEnum(Course)).min(1),
+  sourceUrl: z.string().url(),
+  source: z.enum(SOURCES),
+});
 
-const recipeImportFormSchema = recipeImportSchema;
-type RecipeImport = z.infer<typeof recipeImportFormSchema>;
 type Props = {
-  parsed: ParserOutput;
+  lead: ParserOutput;
 };
 
-export default function RecipeImport({ parsed }: Props) {
-  const titleRef = useRef<HTMLHeadingElement>(null);
-
-  if (parsed.status === "skipped" || parsed.status === "error")
-    return <h1>hi</h1>;
-
-  const recipe = parsed.recipe;
-  const form = useForm<z.infer<typeof recipeImportSchema>>({
-    resolver: zodResolver(recipeImportSchema),
-    mode: "onChange",
-    defaultValues: {
-      title: recipe.title,
-      time: recipe.time,
-      servings: recipe.servings,
-      ingredientSets: recipe.ingredientSets.map((s) => ({
-        name: s.name,
-        ingreds: s.ingreds,
+function initialData(lead: ParserOutput) {
+  if (lead.status === "success") {
+    return {
+      ...lead.recipe,
+      ingredientSets: lead.recipe.ingredientSets.map((set) => ({
+        name: set.name || "",
+        ingreds: set.ingreds.map((i) => ({ value: i })),
       })),
-      instructionSets: recipe.instructionSets.map((s) => ({
-        name: s.name,
-        instructions: s.instructions,
+      instructionSets: lead.recipe.instructionSets.map((set) => ({
+        name: set.name || "",
+        instructions: set.instructions.map((i) => ({ value: i })),
       })),
-      imageUrl: recipe.imageUrl,
-      notes:
-        recipe.notes.length > 0 ? recipe.notes.slice() : ["first", "second"],
-      // notes: recipe.notes.length
-      //   ? recipe.notes.map((n) => ({ value: n }))
-      //   : [{ value: "first" }],
-      postedAt: recipe.postedAt,
-      keywords: recipe.keywords,
-      courses: recipe.courses,
-      source: recipe.source,
-      sourceUrl: recipe.sourceUrl,
-    },
+      notes: lead.recipe.notes.length
+        ? lead.recipe.notes.map((n) => ({ value: n }))
+        : [{ value: "" }],
+    };
+  }
+  return {};
+}
+
+export default function RecipeForm({ lead }: Props) {
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: initialData(lead),
+  });
+
+  const notesFields = useFieldArray({
+    name: "notes",
+    control: form.control,
   });
   const ingredientSetsFields = useFieldArray({
     name: "ingredientSets",
@@ -94,56 +104,72 @@ export default function RecipeImport({ parsed }: Props) {
     name: "instructionSets",
     control: form.control,
   });
-  const notesFields = useFieldArray({
-    name: "notes",
-    control: form.control,
-  });
-  const keywordsFields = useFieldArray({
-    name: "keywords",
-    control: form.control,
-  });
 
-  function onSubmit(values: z.infer<typeof recipeImportSchema>) {
-    console.log(":::::::", values);
+  function onSubmit(values: z.infer<typeof schema>) {
+    console.log("::::: ✅", values);
   }
 
-  // useEffect(() => {
-  //   titleRef.current?.scrollIntoView({ behavior: "smooth" });
-  // });
-
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-9 p-3 space-y-4 overflow-y-auto">
-      {/* <pre className="text-mono text-xs bg-black text-green-400 p-2">
-        {JSON.stringify(form.getValues(), null, 2)}
-      </pre> */}
-      <div className="flex items-center space-x-3">
-        <h2 className="text-2xl tracking-tight font-bold" ref={titleRef}>
-          {form.getValues("title") || "Untitled"}
-        </h2>
-        <Badge variant={parsed.status}>{parsed.status}</Badge>
+    <>
+      <div>
+        <Badge
+          className="mb-6"
+          variant={
+            lead.status === "success"
+              ? "success"
+              : lead.status === "error"
+              ? "destructive"
+              : "outline"
+          }
+        >
+          {lead.status}
+        </Badge>
       </div>
-
+      {lead.status === "error" ? (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4 mb-6" />
+          <AlertTitle>Heads up!</AlertTitle>
+          <AlertDescription>
+            This recipe could not be automatically imported! You can still fill
+            out its data manually though.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((d) => console.log(":::: ola", d))}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="grid grid-cols-2 gap-4"
         >
-          <div className="flex gap-3 col-span-2 flex-col lg:flex-row">
+          <div className="flex gap-4 col-span-2 flex-col lg:flex-row">
             <img
-              src={recipe.imageUrl}
-              alt={recipe.title}
-              className="rounded-md object-cover w-full lg:w-[300px] lg:h-[200px]"
+              src={form.getValues("imageUrl")}
+              alt={form.getValues("title")}
+              className="rounded-md object-cover w-full lg:w-[360px] lg:aspect-auto"
             />
             <div className="flex flex-col gap-2 grow">
               <FormField
                 control={form.control}
-                name="imageUrl"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL</FormLabel>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="shadcn" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sourceUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://www.example.com/dish.jpg"
+                        disabled
                         {...field}
                       />
                     </FormControl>
@@ -151,7 +177,6 @@ export default function RecipeImport({ parsed }: Props) {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="sourceUrl"
@@ -160,6 +185,7 @@ export default function RecipeImport({ parsed }: Props) {
                     <FormLabel>Source URL</FormLabel>
                     <FormControl>
                       <Input
+                        disabled
                         placeholder="https://www.example.com/"
                         {...field}
                       />
@@ -172,26 +198,16 @@ export default function RecipeImport({ parsed }: Props) {
           </div>
           <FormField
             control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://www.example.com/" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="time"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Time</FormLabel>
                 <FormControl>
-                  <Input placeholder="4h30min, 5h, 10min..." {...field} />
+                  <Input placeholder="shadcn" {...field} />
                 </FormControl>
+                {/* <FormDescription>
+                  This is your public display name.
+                </FormDescription> */}
                 <FormMessage />
               </FormItem>
             )}
@@ -203,7 +219,27 @@ export default function RecipeImport({ parsed }: Props) {
               <FormItem>
                 <FormLabel>Servings</FormLabel>
                 <FormControl>
-                  <Input placeholder="2, 4, 12..." {...field} />
+                  <Input placeholder="shadcn" type="number" {...field} />
+                </FormControl>
+                {/* <FormDescription>
+                  This is your public display name.
+                </FormDescription> */}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="postedAt"
+            render={({ field }) => (
+              <FormItem className="flex flex-col space-y-2 justify-start">
+                <FormLabel>Posted on</FormLabel>
+                <FormControl>
+                  <DatePicker
+                    className="w-full"
+                    onSelect={field.onChange}
+                    value={field.value ? new Date(field.value) : undefined}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -214,24 +250,25 @@ export default function RecipeImport({ parsed }: Props) {
             name="source"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Source</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a verified email to display" />
+                      <SelectValue placeholder="Select the recipe source" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {SOURCES.map((source) => (
-                      <SelectItem key={source} value={source}>
-                        {source}
-                      </SelectItem>
+                    {SOURCES.map((s) => (
+                      <SelectItem value={s}>{s}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <FormDescription>
+                  You can manage verified email addresses in your{" "}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -241,7 +278,7 @@ export default function RecipeImport({ parsed }: Props) {
               <FormField
                 control={form.control}
                 key={field.id}
-                name={`notes.${index}`}
+                name={`notes.${index}.value`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={cn(index !== 0 && "sr-only")}>
@@ -251,6 +288,7 @@ export default function RecipeImport({ parsed }: Props) {
                       <span className="flex items-center gap-1">
                         <Textarea
                           {...field}
+                          rows={3}
                           placeholder="Plum sauce: make sure to use a low FODMAP sauce."
                         />
                         <Button
@@ -269,69 +307,44 @@ export default function RecipeImport({ parsed }: Props) {
             ))}
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="mt-2"
-              onClick={() => {
-                notesFields.append("");
-              }}
+              onClick={() => notesFields.append({ value: "" })}
             >
-              <ListPlus className="mr-2" />
               Add note
             </Button>
           </div>
-
-          {/* <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Notes</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Plum sauce: make sure to use a low FODMAP sauce."
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
           <FormField
             control={form.control}
             name="courses"
             render={() => (
               <FormItem>
                 <div className="mb-4">
-                  <FormLabel>Courses</FormLabel>
-                  <FormDescription>
-                    Select the courses that apply to this recipe.
-                  </FormDescription>
+                  <FormLabel className="text-base">Sidebar</FormLabel>
                 </div>
                 {COURSES.map((item) => (
                   <FormField
-                    key={item}
+                    key={"ff-course-" + item}
                     control={form.control}
                     name="courses"
                     render={({ field }) => {
                       return (
                         <FormItem
-                          key={item + "-form-item"}
+                          key={"fi-course-" + item}
                           className="flex flex-row items-start space-x-3 space-y-0"
                         >
                           <FormControl>
                             <Checkbox
                               checked={field.value?.includes(item)}
-                              onCheckedChange={(checked: boolean) => {
-                                console.log(
-                                  "::::: checked",
-                                  item,
-                                  ":",
-                                  checked
-                                );
-                                console.log("::::: field", field.value);
+                              onCheckedChange={(checked) => {
+                                console.log(":::::: field", field);
                                 return checked
-                                  ? field.onChange([...field.value, item])
+                                  ? field.onChange(
+                                      field.value
+                                        ? [...field.value, item]
+                                        : [item]
+                                    )
                                   : field.onChange(
                                       field.value?.filter(
                                         (value) => value !== item
@@ -340,8 +353,8 @@ export default function RecipeImport({ parsed }: Props) {
                               }}
                             />
                           </FormControl>
-                          <FormLabel className="font-normal capitalize">
-                            {item.toLocaleLowerCase()}
+                          <FormLabel className="font-normal lowercase">
+                            {item}
                           </FormLabel>
                         </FormItem>
                       );
@@ -352,6 +365,7 @@ export default function RecipeImport({ parsed }: Props) {
               </FormItem>
             )}
           />
+
           <div className="col-span-2">
             <h3 className="flex gap-2 items-center text-2xl font-semibold mb-3">
               Ingredient sets
@@ -363,31 +377,32 @@ export default function RecipeImport({ parsed }: Props) {
                 onClick={() =>
                   ingredientSetsFields.prepend({
                     name: "",
-                    ingreds: [""],
+                    ingreds: [{ value: "" }],
                   })
                 }
               >
                 <FolderPlus />
               </Button>
             </h3>
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               {ingredientSetsFields.fields.map((set, index) => (
                 <div
-                  className="flex flex-col md:flex-row md:gap-3 md:flex-wrap w-full md:justify-between rounded-lg border bg-card text-card-foreground shadow-sm p-4"
-                  key={set.id}
+                  className="w-full rounded-lg border bg-card text-card-foreground shadow-sm p-4"
+                  key={"set-ingred-" + set.id}
                 >
                   <FormField
                     control={form.control}
-                    key={set.id}
+                    key={"fi-ingred-" + set.id}
                     name={`ingredientSets.${index}.name`}
                     render={({ field }) => (
-                      <FormItem className="md:flex-grow ">
+                      <FormItem className="md:flex-grow mb-6">
                         <div className="flex space-x-2 justify-between items-baseline">
                           <FormLabel>Set Name</FormLabel>
                           <Button
                             type="button"
                             variant="destructiveOutline"
                             size="xs"
+                            onClick={() => ingredientSetsFields.remove(index)}
                           >
                             <FolderX className="mr-2" />
                             Remove set
@@ -401,6 +416,7 @@ export default function RecipeImport({ parsed }: Props) {
                     )}
                   />
                   <NestedArrayFormField
+                    addBtnLabel="Add ingredient"
                     setName="ingredientSets"
                     name="ingreds"
                     control={form.control}
@@ -410,6 +426,7 @@ export default function RecipeImport({ parsed }: Props) {
               ))}
             </div>
           </div>
+
           <div className="col-span-2">
             <h3 className="flex gap-2 items-center text-2xl font-semibold mb-3">
               Instruction sets
@@ -421,31 +438,33 @@ export default function RecipeImport({ parsed }: Props) {
                 onClick={() =>
                   instructionSetsFields.prepend({
                     name: "",
-                    instructions: [""],
+                    instructions: [{ value: "" }],
                   })
                 }
               >
                 <FolderPlus />
               </Button>
             </h3>
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               {instructionSetsFields.fields.map((set, index) => (
                 <div
-                  className="flex flex-col md:flex-row md:gap-3 md:flex-wrap w-full md:justify-between rounded-lg border bg-card text-card-foreground shadow-sm p-4"
-                  key={set.id}
+                  className="w-full rounded-lg border bg-card text-card-foreground shadow-sm p-4"
+                  key={"set-instruct-" + set.id}
                 >
                   <FormField
                     control={form.control}
-                    key={set.id}
+                    key={"fi-instruct-" + set.id}
                     name={`instructionSets.${index}.name`}
                     render={({ field }) => (
-                      <FormItem className="md:flex-grow">
+                      <FormItem className="md:flex-grow mb-6">
                         <div className="flex space-x-2 justify-between items-baseline">
                           <FormLabel>Set Name</FormLabel>
                           <Button
                             type="button"
                             variant="destructiveOutline"
                             size="xs"
+                            disabled={instructionSetsFields.fields.length === 1}
+                            onClick={() => instructionSetsFields.remove(index)}
                           >
                             <FolderX className="mr-2" />
                             Remove set
@@ -459,6 +478,7 @@ export default function RecipeImport({ parsed }: Props) {
                     )}
                   />
                   <NestedArrayFormField
+                    addBtnLabel="Add instruction"
                     setName="instructionSets"
                     name="instructions"
                     control={form.control}
@@ -468,55 +488,24 @@ export default function RecipeImport({ parsed }: Props) {
               ))}
             </div>
           </div>
-          <Button variant="default" type="submit">
-            Submit
-          </Button>
-          <InspectPayloadDialog payload={form.control._formValues} />
+
+          <Button type="submit">Submit</Button>
         </form>
       </Form>
-    </div>
-  );
-}
-
-type InspectPayloadDialog = {
-  payload: Record<string, unknown>;
-};
-function InspectPayloadDialog({ payload }: InspectPayloadDialog) {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">Inspect payload</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Payload</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <ScrollArea
-            orientation="both"
-            className={cn(
-              "mt-2 h-[600px] w-full rounded-md border p-4 text-sm bg-slate-200/75",
-              martianMono.className
-            )}
-          >
-            <pre>{JSON.stringify(payload, null, 2)}</pre>
-          </ScrollArea>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </>
   );
 }
 
 type NestedArrayFormFieldProps = {
-  control: Control<RecipeImport>;
+  control: Control<typeof schema>;
   nestIndex: number;
+  addBtnLabel: string;
 } & (
   | { name: "ingreds"; setName: "ingredientSets" }
   | { name: "instructions"; setName: "instructionSets" }
 );
 function NestedArrayFormField(props: NestedArrayFormFieldProps) {
   const arrFields = useFieldArray({
-    // @ts-expect-error nested fields are not correctly typed
     name: `${props.setName}.${props.nestIndex}.${props.name}`,
     control: props.control,
   });
@@ -527,7 +516,7 @@ function NestedArrayFormField(props: NestedArrayFormFieldProps) {
         <FormField
           control={props.control}
           key={field.id}
-          name={`${props.setName}.${props.nestIndex}.${props.name}.${index}`}
+          name={`${props.setName}.${props.nestIndex}.${props.name}.${index}.value`}
           render={({ field }) => (
             <FormItem>
               <FormLabel className={cn(index !== 0 && "sr-only")}>
@@ -556,11 +545,11 @@ function NestedArrayFormField(props: NestedArrayFormFieldProps) {
         size="sm"
         className="mt-2"
         onClick={() => {
-          arrFields.append("");
+          arrFields.append({ value: "" });
         }}
       >
         <ListPlus className="mr-2" />
-        Add ingredient
+        {props.addBtnLabel}
       </Button>
     </div>
   );

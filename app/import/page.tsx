@@ -6,8 +6,6 @@ import RecipeImport from "./components/recipe-import";
 import { ParserOutput } from "@/lib/sources";
 import { useState } from "react";
 
-const martianMono = Martian_Mono({ subsets: ["latin"] });
-
 export default function Import() {
   const [parsed, setParsed] = useState<ParserOutput | null>(null);
 
@@ -19,7 +17,11 @@ export default function Import() {
 
       <div className="grid gap-4 md:grid-cols-8 lg:grid-cols-12 grow">
         <RecipeLeads onImport={(p) => setParsed(p)} />
-        {parsed && <RecipeImport key={parsed.url} parsed={parsed} />}
+        {parsed && (
+          <section className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-9 p-5">
+            <RecipeImport key={parsed.url} lead={parsed} />
+          </section>
+        )}
       </div>
 
       {/* {parsed?.status === "success" || parsed?.status === "error" ? (
