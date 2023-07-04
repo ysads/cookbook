@@ -8,6 +8,7 @@ import { ListOutput, ParserOutput } from "@/lib/sources";
 import { RecipeLead } from "@/lib/sources/types";
 import { Edit } from "lucide-react";
 import { useState } from "react";
+import axios from "axios";
 
 type Props = {
   onImport: (parsed: ParserOutput) => void;
@@ -21,21 +22,16 @@ export default function RecipeLeads(props: Props) {
   async function fetchRecipeLeads(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
-    fetch(`/import/api?url=${url}`).then(async (res) => {
-      const data = (await res.json()) as unknown as ListOutput;
+    axios.get(`/import/api?url=${url}`).then(async (res) => {
+      const data = res.data as unknown as ListOutput;
       setLeads(data.list);
       setIsLoading(false);
     });
   }
 
-  async function importRecipe(lead: RecipeLead) {
-    fetch("/import/api", {
-      method: "post",
-      body: JSON.stringify({ url: lead.url }),
-    }).then(async (res) => {
-      if (res.ok) {
-        props.onImport(await res.json());
-      }
+  async function parseRecipe(lead: RecipeLead) {
+    axios.post("/import/api", { url: lead.url }).then(async (res) => {
+      props.onImport(res.data);
     });
   }
 
@@ -76,7 +72,7 @@ export default function RecipeLeads(props: Props) {
             <RecipeLead
               key={lead.url}
               lead={lead}
-              onImport={() => importRecipe(lead)}
+              onImport={() => parseRecipe(lead)}
             />
           ))
         : null}

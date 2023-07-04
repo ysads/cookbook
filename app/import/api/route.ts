@@ -1,4 +1,4 @@
-import { importRecipe, listRecipes } from "@/lib/sources";
+import { parseRecipe, listRecipes } from "@/lib/sources";
 import { NextResponse, NextRequest } from "next/server";
 import { z } from "zod";
 import { zfd } from "zod-form-data";
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const form = z.object({ url: z.string().url() }).parse(await req.json());
-  const result = await importRecipe(form.url);
+  const result = await parseRecipe(form.url);
 
   if (result.status === "success") {
     // await prisma?.recipe.create({

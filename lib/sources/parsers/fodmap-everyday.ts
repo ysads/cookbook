@@ -4,7 +4,7 @@
  * https://www.fodmapeveryday.com/recipes/rhubarb-upside-down-cake/
  **/
 import { Course } from "@prisma/client";
-import { Parser } from "./types";
+import { Parser } from "../types";
 
 const NOTES_REGEX =
   /•[\s]*<strong>[A-Za-z ]+[ ]*<\/strong>:[A-z<>\(\)\-,.0-9“”’"':;½¼¾⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞\s]+/gm;
@@ -60,6 +60,8 @@ function mapCourseToEnum(courses: string[]) {
 }
 
 export const fodmapEveryday: Parser = {
+  name: "fodmap-everyday",
+
   canList: ({ url }) => Boolean(url.match(/fodmapeveryday.com\/recipes/)),
 
   canParse: ({ document, url }) =>

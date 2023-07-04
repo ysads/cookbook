@@ -1,15 +1,66 @@
 // https://www.fodmapformula.com/low-fodmap-warm-potato-salad/
 
-import { Parser } from "./types";
+import { Course } from "@prisma/client";
+import { Parser } from "../types";
+
+function mapCourseToEnum(el: Element | null) {
+  if (!el) return [];
+  const courses = el.textContent?.split(",") || [];
+  const set = new Set<Course>();
+
+  for (const course of courses) {
+    const lCourse = course.toLowerCase();
+    if (["main", "dinner", "lunch", "brunch"].some((k) => lCourse.match(k))) {
+      set.add(Course.MAIN);
+    }
+    if (["breakfast", "brunch", "bread"].some((k) => lCourse.match(k))) {
+      set.add(Course.BREAKFAST);
+    }
+    if (["appetizer", "side", "bread"].some((k) => lCourse.match(k))) {
+      set.add(Course.SIDE);
+    }
+    if (["snack", "treat", "candy"].some((k) => lCourse.match(k))) {
+      set.add(Course.SNACK);
+    }
+    if (["dessert", "candy"].some((k) => lCourse.match(k))) {
+      set.add(Course.DESSERT);
+    }
+    if (["beverage", "drink"].some((k) => lCourse.match(k))) {
+      set.add(Course.DRINK);
+    }
+    if (["condiment", "basic", "sauce"].some((k) => lCourse.match(k))) {
+      set.add(Course.OTHER);
+    }
+    if (["soup"].some((k) => lCourse.match(k))) {
+      set.add(Course.SOUP);
+    }
+    if (["salad"].some((k) => lCourse.match(k))) {
+      set.add(Course.SALAD);
+    }
+  }
+  return Array.from(set);
+}
 
 export const fodmapFormulaNew: Parser = {
-  canList: () => false,
+  name: "fodmap-formula-new",
+
+  canList: ({ document, url }) =>
+    url.includes("fodmapformula.com") &&
+    document.querySelector(".entry") !== null,
 
   canParse: ({ document, url }) =>
     url.includes("fodmapformula.com") &&
     Boolean(document.querySelector(".tasty-recipes-entry-header")),
 
-  list: () => [],
+  list: ({ document }) => {
+    return Array.from(document.querySelectorAll(".entry")).map((el) => {
+      return {
+        imageUrl: el.querySelector(".entry-image")?.getAttribute("src"),
+        url: el.querySelector(".entry-image-link")?.getAttribute("href"),
+        title: el.querySelector(".entry-title-link")?.textContent,
+      };
+    });
+  },
 
   parse({ document, url }) {
     const title = document.querySelector("h1.entry-title")?.textContent || url;
@@ -58,11 +109,15 @@ export const fodmapFormulaNew: Parser = {
       }
     );
 
+    const courses = mapCourseToEnum(
+      document.querySelector(".tasty-recipes-category")
+    );
+
     return {
       title,
-      courses: [],
-      ingreds: ingredients,
-      instructions,
+      courses,
+      ingredientSets: [{ name: "", ingreds: ingredients }],
+      instructionSets: [{ name: "", instructions }],
       servings,
       time,
       imageUrl: imageUrl?.getAttribute("src") || "",

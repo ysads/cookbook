@@ -19,7 +19,7 @@ export default function Import() {
         <RecipeLeads onImport={(p) => setParsed(p)} />
         {parsed && (
           <section className="rounded-lg border bg-card text-card-foreground shadow-sm md:col-span-4 lg:col-span-9 p-5">
-            <RecipeImport key={parsed.url} lead={parsed} />
+            <RecipeImport key={parsed.url} parsed={parsed} />
           </section>
         )}
       </div>

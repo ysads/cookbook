@@ -51,6 +51,7 @@ export type SourceInput = {
 };
 
 export type Parser = {
+  name: string;
   canParse: (input: SourceInput) => boolean;
   canList: (input: SourceInput) => boolean;
   list: (input: SourceInput) => DeepNullish<RecipeLead[]>;

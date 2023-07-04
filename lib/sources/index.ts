@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
-import { fodmapFormulaNew } from "./fodmap-formula-new";
-import { fodmapFormulaOld } from "./fodmap-formula-old";
-import { fodmapEveryday } from "./fodmap-everyday";
+import { fodmapFormulaNew } from "./parsers/fodmap-formula-new";
+import { fodmapFormulaOld } from "./parsers/fodmap-formula-old";
+import { fodmapEveryday } from "./parsers/fodmap-everyday";
 import {
   RecipeImport,
   RecipeLead,
@@ -9,14 +9,11 @@ import {
   recipeLeadSchema,
 } from "./types";
 import { DeepNullish } from "../types";
+import axios from "axios";
 
 const parsers = [fodmapFormulaNew, fodmapFormulaOld, fodmapEveryday];
 
 export type ParserOutput =
-  | {
-      url: string;
-      status: "skipped";
-    }
   | {
       url: string;
       status: "success";
@@ -24,27 +21,34 @@ export type ParserOutput =
     }
   | {
       url: string;
-      status: "error";
+      status: "partial";
       recipe: DeepNullish<RecipeImport>;
       errors: { path: string; message: string }[];
+    }
+  | {
+      url: string;
+      status: "error";
+      recipe: null;
+      errors: { message: string }[];
     };
 
-export async function importRecipe(url: string): Promise<ParserOutput> {
-  const page = await (await fetch(url)).text();
-  const dom = new JSDOM(page);
+export async function parseRecipe(url: string): Promise<ParserOutput> {
+  const page = await axios.get(url);
+  const dom = new JSDOM(page.data);
   const input = { document: dom.window.document, url };
   const parser = parsers.find((p) => p.canParse(input));
 
   if (!parser) {
     return {
       url,
-      status: "skipped",
+      errors: [{ message: "No parser found" }],
+      recipe: null,
+      status: "error",
     };
   }
 
   const nullishRecipe = parser.parse(input);
   const validation = recipeImportSchema.safeParse(nullishRecipe);
-
   if (!validation.success) {
     return {
       url,
@@ -53,7 +57,7 @@ export async function importRecipe(url: string): Promise<ParserOutput> {
         path: i.path.join("."),
       })),
       recipe: nullishRecipe,
-      status: "error",
+      status: "partial",
     };
   }
 
@@ -64,13 +68,39 @@ export async function importRecipe(url: string): Promise<ParserOutput> {
   };
 }
 
-export type ListOutput = {
-  status: "success" | "error";
-  list: RecipeLead[];
-};
+export type ListOutput = {} & (
+  | {
+      status: "success";
+      list: RecipeLead[];
+    }
+  | {
+      status: "partial";
+      list: RecipeLead[];
+      errors: { path: string; message: string }[];
+    }
+  | {
+      status: "error";
+      list: [];
+      errors: { message: string }[];
+    }
+);
 
 export async function listRecipes(url: string): Promise<ListOutput> {
-  const page = await (await fetch(url)).text();
+  const page = await axios
+    .get(url)
+    .then((res) => res.data)
+    .catch((e) => {
+      if ((e.response.status = 404)) return null;
+      throw e;
+    });
+
+  if (!page)
+    return {
+      status: "error",
+      list: [],
+      errors: [{ message: "Page not found" }],
+    };
+
   const dom = new JSDOM(page);
   const input = { document: dom.window.document, url };
   const parser = parsers.find((p) => p.canList(input));
@@ -79,12 +109,20 @@ export async function listRecipes(url: string): Promise<ListOutput> {
     return {
       status: "error",
       list: [],
+      errors: [{ message: "No parser found" }],
     };
   }
 
   const validation = recipeLeadSchema.array().safeParse(parser.list(input));
   if (!validation.success) {
-    return { status: "error", list: [] };
+    return {
+      status: "partial",
+      list: [],
+      errors: validation.error.issues.map((i) => ({
+        message: i.message,
+        path: i.path.join("."),
+      })),
+    };
   }
 
   return {

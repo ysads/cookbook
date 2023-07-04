@@ -88,7 +88,7 @@ const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({ className, ...props }, ref) => {
-  const { error, formItemId } = useFormField();
+  const { error, formItemId, ...rest } = useFormField();
 
   return (
     <Label
@@ -145,10 +145,11 @@ const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
-  const { error, formMessageId } = useFormField();
+  const { error, formMessageId, name } = useFormField();
+
   const body = error ? String(error?.message) : children;
 
-  if (!body) {
+  if (!body || body === "undefined") {
     return null;
   }
 
@@ -165,6 +166,30 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = "FormMessage";
 
+const FormFieldArray = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({
+  render,
+  divProps = {},
+  ...props
+}: ControllerProps<TFieldValues, TName> & {
+  divProps?: React.HTMLAttributes<HTMLDivElement>;
+}) => {
+  return (
+    <FormFieldContext.Provider value={{ name: props.name }}>
+      <Controller
+        {...props}
+        render={(args) => (
+          <div {...divProps} className={cn("space-y-2", divProps.className)}>
+            {render(args)}
+          </div>
+        )}
+      />
+    </FormFieldContext.Provider>
+  );
+};
+
 export {
   useFormField,
   Form,
@@ -174,4 +199,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormFieldArray,
 };
