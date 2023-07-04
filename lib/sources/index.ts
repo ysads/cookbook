@@ -9,6 +9,7 @@ import {
   recipeLeadSchema,
 } from "./types";
 import { DeepNullish } from "../types";
+import axios from "axios";
 
 const parsers = [fodmapFormulaNew, fodmapFormulaOld, fodmapEveryday];
 
@@ -30,8 +31,8 @@ export type ParserOutput =
     };
 
 export async function importRecipe(url: string): Promise<ParserOutput> {
-  const page = await (await fetch(url)).text();
-  const dom = new JSDOM(page);
+  const page = await axios.get(url);
+  const dom = new JSDOM(page.data);
   const input = { document: dom.window.document, url };
   const parser = parsers.find((p) => p.canParse(input));
 
@@ -70,8 +71,8 @@ export type ListOutput = {
 };
 
 export async function listRecipes(url: string): Promise<ListOutput> {
-  const page = await (await fetch(url)).text();
-  const dom = new JSDOM(page);
+  const page = await axios.get(url);
+  const dom = new JSDOM(page.data);
   const input = { document: dom.window.document, url };
   const parser = parsers.find((p) => p.canList(input));
 

@@ -2,14 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl         = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
   shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
 }
 
@@ -22,66 +22,67 @@ enum Course {
   SNACK
   SOUP
   DESSERT
+  SAUCE
   OTHER
 }
 
 model Recipe {
-  id                Int       @id @default(autoincrement())
-  title             String
-  source            String
-  sourceUrl         String
-  servings          Float
-  time              String
-  imageUrl          String
-  courses           Course[]
-  keywords          String[]
-  instructionSets   InstructionSet[]
-  ingredientSets    IngredientSet[]
-  fodmap            Fodmap?
-  notes             String[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  postedAt          DateTime? @default(now())
+  id              Int              @id @default(autoincrement())
+  title           String
+  source          String
+  sourceUrl       String
+  servings        Float
+  time            String
+  imageUrl        String
+  courses         Course[]
+  keywords        String[]
+  instructionSets InstructionSet[]
+  ingredientSets  IngredientSet[]
+  fodmap          Fodmap?
+  notes           String[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  postedAt        DateTime?        @default(now())
 }
 
 model Fodmap {
-  id          Int       @id @default(autoincrement())
-  fructans    Float
-  galactans   Float
-  lactose     Float
-  polyols     Float
-  fructose    Float
-  recipeId    Int       @unique
-  recipe      Recipe    @relation(fields: [recipeId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  fructans  Float
+  galactans Float
+  lactose   Float
+  polyols   Float
+  fructose  Float
+  recipeId  Int      @unique
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model IngredientSet {
-  id          Int        @id @default(autoincrement())
-  name        String?
-  ingreds     String[]
-  recipeId    Int
-  recipe      Recipe    @relation(fields: [recipeId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String?
+  ingreds   String[]
+  recipeId  Int
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model InstructionSet {
-  id            Int        @id @default(autoincrement())
-  name          String?
-  instructions  String[]
-  recipeId      Int
-  recipe        Recipe    @relation(fields: [recipeId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String?
+  instructions String[]
+  recipeId     Int
+  recipe       Recipe   @relation(fields: [recipeId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model RecipeImport {
-  id          Int       @id @default(autoincrement())
-  url         String
-  status      String
-  errors      Json?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  url       String
+  status    String
+  errors    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
