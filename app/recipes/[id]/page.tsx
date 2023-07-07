@@ -6,5 +6,18 @@ export default async function RecipePage({ params }: Props) {
     where: { id: parseInt(params.id) },
   });
 
-  return recipe ? <div>{recipe.title}</div> : null;
+  return recipe ? (
+    <div className="grid grid-cols-12">
+      <aside className="col-span-4">
+        <img
+          className="rounded-xl w-full"
+          src={recipe.imageUrl}
+          alt={recipe.title}
+        />
+      </aside>
+      <div className="col-span-8">
+        <h2 className="text-2xl font-bold">{recipe.title}</h2>
+      </div>
+    </div>
+  ) : null;
 }

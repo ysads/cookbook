@@ -17,25 +17,24 @@ export default async function Home() {
 
   return (
     <main className="relative flex flex-col items-center ">
-      <h1 className="scroll-m-20 text-4xl font-bold tracking-tight">
+      {/* <h1 className="scroll-m-20 text-4xl font-bold tracking-tight">
         Cookbook 🍱
-      </h1>
+      </h1> */}
       {recipes && recipes.length ? (
-        <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2">
+        <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
           {recipes.map((r) => {
             return (
-              <li className="appearance-none rounded-3xl bg-purple-50 overflow-hidden border border-purple-200 focus-within:bg-purple-100 hover:bg-purple-100 transition-all hover:rounded-[2.5rem]">
+              <li className="appearance-none overflow-hidden transition-all">
                 <Link href={`/recipes/${r.id}`}>
                   <img
                     src={r.imageUrl}
                     alt={r.title}
                     className={cn(
-                      "h-auto object-cover transition-all hover:scale-105 aspect-[4/3] w-full rounded-3xl"
+                      "h-auto object-cover rounded-xl transition-all hover:scale-105 aspect-[4/3] w-full "
                     )}
                   />
                 </Link>
-                <div className="px-5 py-6 flex flex-col gap-3">
-                  {/* <Badge variant="default">{r.source}</Badge> */}
+                <div className="px-5 py-6 flex flex-col gap-3 mb-6">
                   <span className="flex gap-2">
                     {r.courses.map((c) => (
                       <span className="uppercase text-sm rounded-lg font-bold text-purple-600">
@@ -51,7 +50,7 @@ export default async function Home() {
                       <BookmarkPlus width={24} />
                     </Button>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 flex-wrap">
                     <span className="flex gap-1">
                       <Clock10 width={16} />
                       {r.servings} servings
