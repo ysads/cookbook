@@ -2,7 +2,11 @@ import { Course, IngredientSet, InstructionSet, Recipe } from "@prisma/client";
 import { DeepNullish, Unpersisted } from "../types";
 import { z } from "zod";
 
-export const SOURCES = ["fodmap-formula", "fodmap-everyday"] as const;
+export const SOURCES = [
+  "fodmap-formula",
+  "fodmap-everyday",
+  "karlijns",
+] as const;
 
 export type Source = (typeof SOURCES)[number];
 

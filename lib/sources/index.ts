@@ -10,8 +10,9 @@ import {
 } from "./types";
 import { DeepNullish } from "../types";
 import axios from "axios";
+import { karlijns } from "./parsers/karlijns";
 
-const parsers = [fodmapFormulaNew, fodmapFormulaOld, fodmapEveryday];
+const parsers = [fodmapFormulaNew, fodmapFormulaOld, fodmapEveryday, karlijns];
 
 export type ParserOutput =
   | {
