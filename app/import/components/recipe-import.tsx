@@ -34,7 +34,6 @@ import {
   FolderPlus,
   FolderX,
   ListPlus,
-  ScreenShare,
   X,
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -42,7 +41,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Martian_Mono } from "next/font/google";
 import { Label } from "@/components/ui/label";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const martianMono = Martian_Mono({ subsets: ["latin"], weights: [400] });
 
@@ -150,424 +149,448 @@ export default function RecipeForm({ parsed }: Props) {
     console.log("::::: ✅", values);
   }
 
+  const topRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     form.trigger();
+    topRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  return parsed.status === "error" ? (
+  return (
     <>
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4 mb-6" />
-        <AlertTitle>Heads up!</AlertTitle>
-        <AlertDescription>
-          This link could not be parsed as a recipe! This could be a blog post,
-          or maybe the recipe is not in a format we support yet.
-          <br />
-          <br />
-          Errors reported:
-          <ul className={cn("mt-4 text-xs", martianMono.className)}>
-            {parsed.errors.map((error, index) => (
-              <li key={"error-" + index}>{error.message}</li>
-            ))}
-          </ul>
-        </AlertDescription>
-      </Alert>
-
-      <Label className="mt-5 block">Source url</Label>
-      <Input className="mt-2" disabled value={parsed.url} />
-    </>
-  ) : (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-4"
-      >
-        <div className="col-span-2 flex gap-3 items-center">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem className="flex-grow">
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="shadcn" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Badge
-            variant={
-              parsed.status === "success"
-                ? "success"
-                : parsed.status === "partial"
-                ? "destructive"
-                : "outline"
-            }
-          >
-            {parsed.status}
-          </Badge>
-        </div>
-        {parsed.status === "partial" ? (
-          <Alert variant="destructive" className="col-span-2">
+      <div ref={topRef} />
+      {parsed.status === "error" ? (
+        <>
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4 mb-6" />
             <AlertTitle>Heads up!</AlertTitle>
             <AlertDescription>
-              This recipe could not be automatically imported! You can still
-              fill out its data manually though.
+              This link could not be parsed as a recipe! This could be a blog
+              post, or maybe the recipe is not in a format we support yet.
               <br />
               <br />
               Errors reported:
-              <ul
-                className={cn("mt-4 text-xs space-y-3", martianMono.className)}
-              >
+              <ul className={cn("mt-4 text-xs", martianMono.className)}>
                 {parsed.errors.map((error, index) => (
-                  <li
-                    key={"error-" + index}
-                    className="flex gap-2 items-center flex-wrap"
-                  >
-                    <span className="rounded bg-red-100 px-2 py-1 break-words">
-                      {error.path}
-                    </span>
-                    {error.message}
-                  </li>
+                  <li key={"error-" + index}>{error.message}</li>
                 ))}
               </ul>
             </AlertDescription>
           </Alert>
-        ) : null}
-        <div className="flex gap-4 col-span-2 flex-col lg:flex-row">
-          <img
-            src={form.getValues("imageUrl")}
-            alt={form.getValues("title")}
-            className="rounded-md object-cover w-full lg:w-[360px] lg:aspect-auto"
-          />
-          <div className="flex flex-col gap-2 grow">
+
+          <Label className="mt-5 block">Source url</Label>
+          <Input className="mt-2" disabled value={parsed.url} />
+        </>
+      ) : (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid grid-cols-2 gap-4"
+          >
+            <div className="col-span-2 flex gap-3 items-center">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem className="flex-grow">
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="shadcn" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Badge
+                variant={
+                  parsed.status === "success"
+                    ? "success"
+                    : parsed.status === "partial"
+                    ? "destructive"
+                    : "outline"
+                }
+              >
+                {parsed.status}
+              </Badge>
+            </div>
+            {parsed.status === "partial" ? (
+              <Alert variant="destructive" className="col-span-2">
+                <AlertCircle className="h-4 w-4 mb-6" />
+                <AlertTitle>Heads up!</AlertTitle>
+                <AlertDescription>
+                  This recipe could not be automatically imported! You can still
+                  fill out its data manually though.
+                  <br />
+                  <br />
+                  Errors reported:
+                  <ul
+                    className={cn(
+                      "mt-4 text-xs space-y-3",
+                      martianMono.className
+                    )}
+                  >
+                    {parsed.errors.map((error, index) => (
+                      <li
+                        key={"error-" + index}
+                        className="flex gap-2 items-center flex-wrap"
+                      >
+                        <span className="rounded bg-red-100 px-2 py-1 break-words">
+                          {error.path}
+                        </span>
+                        {error.message}
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="flex gap-4 col-span-2 flex-col lg:flex-row">
+              <img
+                src={form.getValues("imageUrl")}
+                alt={form.getValues("title")}
+                className="rounded-md object-cover w-full lg:w-[360px] lg:aspect-auto"
+              />
+              <div className="flex flex-col gap-2 grow">
+                <FormField
+                  control={form.control}
+                  name="sourceUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Source URL</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-1">
+                          <Input
+                            disabled
+                            placeholder="https://www.example.com/"
+                            {...field}
+                          />
+                          <Button
+                            asChild
+                            variant="outline"
+                            title="Open original URL"
+                          >
+                            <a href={parsed.recipe.sourceUrl} target="_blank">
+                              <ArrowUpRightFromCircle className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
             <FormField
               control={form.control}
-              name="sourceUrl"
+              name="time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Source URL</FormLabel>
+                  <FormLabel>Time</FormLabel>
                   <FormControl>
-                    <div className="flex gap-1">
-                      <Input
-                        disabled
-                        placeholder="https://www.example.com/"
-                        {...field}
-                      />
-                      <Button
-                        asChild
-                        variant="outline"
-                        title="Open original URL"
-                      >
-                        <a href={parsed.recipe.sourceUrl} target="_blank">
-                          <ArrowUpRightFromCircle className="w-4 h-4" />
-                        </a>
-                      </Button>
-                    </div>
+                    <Input placeholder="2h, 15min..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-        </div>
-        <FormField
-          control={form.control}
-          name="time"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Time</FormLabel>
-              <FormControl>
-                <Input placeholder="2h, 15min..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="servings"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Servings</FormLabel>
-              <FormControl>
-                <Input placeholder="3, 12, 0.5..." type="number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="postedAt"
-          render={({ field }) => (
-            <FormItem className="flex flex-col space-y-2 justify-start">
-              <FormLabel>Posted at</FormLabel>
-              <FormControl>
-                <DatePicker
-                  className="w-full"
-                  onSelect={field.onChange}
-                  value={field.value ? new Date(field.value) : undefined}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="source"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Source</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select the recipe source" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {SOURCES.map((s) => (
-                    <SelectItem value={s}>{s}</SelectItem>
+            <FormField
+              control={form.control}
+              name="servings"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Servings</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="3, 12, 0.5..."
+                      type="number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="postedAt"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Posted at</FormLabel>
+                  <FormControl>
+                    <DatePicker
+                      className="w-full"
+                      onSelect={field.onChange}
+                      value={field.value ? new Date(field.value) : undefined}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="source"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Source</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select the recipe source" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {SOURCES.map((s) => (
+                        <SelectItem value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormFieldArray
+              control={form.control}
+              name="notes"
+              render={() => (
+                <>
+                  {<FormLabel>Notes</FormLabel>}
+                  {notesFields.fields.map((field, index) => (
+                    <FormField
+                      control={form.control}
+                      key={field.id}
+                      name={`notes.${index}.value`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <span className="flex items-center gap-1">
+                              <Textarea
+                                {...field}
+                                rows={3}
+                                placeholder="Plum sauce: make sure to use a low FODMAP sauce."
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => notesFields.remove(index)}
+                              >
+                                <X size={20} />
+                              </Button>
+                            </span>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormFieldArray
-          control={form.control}
-          name="notes"
-          render={() => (
-            <>
-              {<FormLabel>Notes</FormLabel>}
-              {notesFields.fields.map((field, index) => (
-                <FormField
-                  control={form.control}
-                  key={field.id}
-                  name={`notes.${index}.value`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <span className="flex items-center gap-1">
-                          <Textarea
-                            {...field}
-                            rows={3}
-                            placeholder="Plum sauce: make sure to use a low FODMAP sauce."
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => notesFields.remove(index)}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => notesFields.append({ value: "" })}
+                  >
+                    Add note
+                  </Button>
+                  <FormMessage />
+                </>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="courses"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Sidebar</FormLabel>
+                  </div>
+                  {COURSES.map((item) => (
+                    <FormField
+                      key={"ff-course-" + item}
+                      control={form.control}
+                      name="courses"
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={"fi-course-" + item}
+                            className="flex flex-row items-start space-x-3 space-y-0"
                           >
-                            <X size={20} />
-                          </Button>
-                        </span>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={() => notesFields.append({ value: "" })}
-              >
-                Add note
-              </Button>
-              <FormMessage />
-            </>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="courses"
-          render={() => (
-            <FormItem>
-              <div className="mb-4">
-                <FormLabel className="text-base">Sidebar</FormLabel>
-              </div>
-              {COURSES.map((item) => (
-                <FormField
-                  key={"ff-course-" + item}
-                  control={form.control}
-                  name="courses"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={"fi-course-" + item}
-                        className="flex flex-row items-start space-x-3 space-y-0"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(item)}
-                            onCheckedChange={(checked) => {
-                              console.log(":::::: field", field);
-                              return checked
-                                ? field.onChange(
-                                    field.value
-                                      ? [...field.value, item]
-                                      : [item]
-                                  )
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== item
-                                    )
-                                  );
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal lowercase">
-                          {item}
-                        </FormLabel>
-                      </FormItem>
-                    );
-                  }}
-                />
-              ))}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(item)}
+                                onCheckedChange={(checked) => {
+                                  console.log(":::::: field", field);
+                                  return checked
+                                    ? field.onChange(
+                                        field.value
+                                          ? [...field.value, item]
+                                          : [item]
+                                      )
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== item
+                                        )
+                                      );
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal lowercase">
+                              {item}
+                            </FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="col-span-2">
-          <h3 className="flex gap-2 items-center text-2xl font-semibold mb-3">
-            Ingredient sets
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="mt-1"
-              onClick={() =>
-                ingredientSetsFields.prepend({
-                  value: {
-                    name: "",
-                    ingreds: [{ value: "" }],
-                  },
-                })
-              }
-            >
-              <FolderPlus />
-            </Button>
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {ingredientSetsFields.fields.map((set, index) => (
-              <div
-                className="w-full rounded-lg border bg-card text-card-foreground shadow-sm p-4"
-                key={"set-ingred-" + set.id}
-              >
-                <FormField
-                  control={form.control}
-                  key={"fi-ingred-" + set.id}
-                  name={`ingredientSets.${index}.value.name`}
-                  render={({ field }) => (
-                    <FormItem className="md:flex-grow mb-6">
-                      <div className="flex space-x-2 justify-between items-baseline">
-                        <FormLabel>Set Name</FormLabel>
-                        <Button
-                          type="button"
-                          variant="destructiveOutline"
-                          size="xs"
-                          disabled={ingredientSetsFields.fields.length === 1}
-                          onClick={() => ingredientSetsFields.remove(index)}
-                        >
-                          <FolderX className="mr-2" />
-                          Remove set
-                        </Button>
-                      </div>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <NestedArrayFormField
-                  addBtnLabel="Add ingredient"
-                  setName="ingredientSets"
-                  name="ingreds"
-                  // @ts-expect-error inference of nested objects is broken
-                  control={form.control}
-                  nestIndex={index}
-                />
+            <div className="col-span-2">
+              <h3 className="flex gap-2 items-center text-2xl font-semibold mb-3">
+                Ingredient sets
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-1"
+                  onClick={() =>
+                    ingredientSetsFields.prepend({
+                      value: {
+                        name: "",
+                        ingreds: [{ value: "" }],
+                      },
+                    })
+                  }
+                >
+                  <FolderPlus />
+                </Button>
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {ingredientSetsFields.fields.map((set, index) => (
+                  <div
+                    className="w-full rounded-lg border bg-card text-card-foreground shadow-sm p-4"
+                    key={"set-ingred-" + set.id}
+                  >
+                    <FormField
+                      control={form.control}
+                      key={"fi-ingred-" + set.id}
+                      name={`ingredientSets.${index}.value.name`}
+                      render={({ field }) => (
+                        <FormItem className="md:flex-grow mb-6">
+                          <div className="flex space-x-2 justify-between items-baseline">
+                            <FormLabel>Set Name</FormLabel>
+                            <Button
+                              type="button"
+                              variant="destructiveOutline"
+                              size="xs"
+                              disabled={
+                                ingredientSetsFields.fields.length === 1
+                              }
+                              onClick={() => ingredientSetsFields.remove(index)}
+                            >
+                              <FolderX className="mr-2" />
+                              Remove set
+                            </Button>
+                          </div>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <NestedArrayFormField
+                      addBtnLabel="Add ingredient"
+                      setName="ingredientSets"
+                      name="ingreds"
+                      // @ts-expect-error inference of nested objects is broken
+                      control={form.control}
+                      nestIndex={index}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        <div className="col-span-2">
-          <h3 className="flex gap-2 items-center text-2xl font-semibold mb-3">
-            Instruction sets
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="mt-1"
-              onClick={() =>
-                instructionSetsFields.prepend({
-                  value: {
-                    name: "",
-                    instructions: [{ value: "" }],
-                  },
-                })
-              }
-            >
-              <FolderPlus />
-            </Button>
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {instructionSetsFields.fields.map((set, index) => (
-              <div
-                className="w-full rounded-lg border bg-card text-card-foreground shadow-sm p-4"
-                key={"set-instructions-" + set.id}
-              >
-                <FormField
-                  control={form.control}
-                  key={"fi-instructions-" + set.id}
-                  name={`instructionSets.${index}.value.name`}
-                  render={({ field }) => (
-                    <FormItem className="md:flex-grow mb-6">
-                      <div className="flex space-x-2 justify-between items-baseline">
-                        <FormLabel>Set Name</FormLabel>
-                        <Button
-                          type="button"
-                          variant="destructiveOutline"
-                          size="xs"
-                          disabled={instructionSetsFields.fields.length === 1}
-                          onClick={() => instructionSetsFields.remove(index)}
-                        >
-                          <FolderX className="mr-2" />
-                          Remove set
-                        </Button>
-                      </div>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <NestedArrayFormField
-                  addBtnLabel="Add instruction"
-                  setName="instructionSets"
-                  name="instructions"
-                  // @ts-expect-error inference of nested objects is broken
-                  control={form.control}
-                  nestIndex={index}
-                />
+            <div className="col-span-2">
+              <h3 className="flex gap-2 items-center text-2xl font-semibold mb-3">
+                Instruction sets
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-1"
+                  onClick={() =>
+                    instructionSetsFields.prepend({
+                      value: {
+                        name: "",
+                        instructions: [{ value: "" }],
+                      },
+                    })
+                  }
+                >
+                  <FolderPlus />
+                </Button>
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {instructionSetsFields.fields.map((set, index) => (
+                  <div
+                    className="w-full rounded-lg border bg-card text-card-foreground shadow-sm p-4"
+                    key={"set-instructions-" + set.id}
+                  >
+                    <FormField
+                      control={form.control}
+                      key={"fi-instructions-" + set.id}
+                      name={`instructionSets.${index}.value.name`}
+                      render={({ field }) => (
+                        <FormItem className="md:flex-grow mb-6">
+                          <div className="flex space-x-2 justify-between items-baseline">
+                            <FormLabel>Set Name</FormLabel>
+                            <Button
+                              type="button"
+                              variant="destructiveOutline"
+                              size="xs"
+                              disabled={
+                                instructionSetsFields.fields.length === 1
+                              }
+                              onClick={() =>
+                                instructionSetsFields.remove(index)
+                              }
+                            >
+                              <FolderX className="mr-2" />
+                              Remove set
+                            </Button>
+                          </div>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <NestedArrayFormField
+                      addBtnLabel="Add instruction"
+                      setName="instructionSets"
+                      name="instructions"
+                      // @ts-expect-error inference of nested objects is broken
+                      control={form.control}
+                      nestIndex={index}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-        <Button type="submit">Submit</Button>
-      </form>
-    </Form>
+            </div>
+            <Button type="submit">Submit</Button>
+          </form>
+        </Form>
+      )}
+    </>
   );
 }
 
