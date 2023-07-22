@@ -1,7 +1,7 @@
 import { Course } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 const getSchema = z.object({
   take: z.coerce.number().min(1),

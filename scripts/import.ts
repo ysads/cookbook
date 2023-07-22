@@ -1,5 +1,5 @@
 import { listRecipes, parseRecipe } from "../lib/sources";
-import prisma from "../lib/prisma";
+import { prisma } from "@/lib/prisma";
 import dotenv from "dotenv";
 
 // type ImportResult = {

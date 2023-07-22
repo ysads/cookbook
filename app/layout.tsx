@@ -37,12 +37,12 @@ export default function RootLayout({
         <Providers>
           <div className="py-5 shadow-sm border-b">
             <div className="max-w-screen-xl mx-auto justify-between flex px-8">
-              <h1 className="text-3xl font-bold tracking-tight">
+              <p className="text-3xl font-bold tracking-tight">
                 <Link href="/" className="flex gap-2 items-center">
                   Cookbook
                   <Logo className="w-7 h-7" />
                 </Link>
-              </h1>
+              </p>
               <div className="flex items-center gap-4">
                 <Link
                   href="/import"
