@@ -31,5 +31,9 @@ export const recipeSchema = z.object({
 });
 
 export function persisted<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
-  return schema.extend({ id: z.number() });
+  return schema.extend({
+    id: z.number(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  });
 }

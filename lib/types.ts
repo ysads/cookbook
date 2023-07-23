@@ -11,6 +11,13 @@ export type DeepNullish<T> = {
     : T[P] | null | undefined;
 };
 
+// INFO: necessary because TS compares the parts of `Date | null` separately, which
+// makes it fail to realise it extends `Date`.
+type DateToString<T> = T extends Date ? string : T;
+export type StringifiedDates<T> = {
+  [K in keyof T]: DateToString<T[K]>;
+};
+
 export const COURSES = [
   Course.BREAKFAST,
   Course.DESSERT,

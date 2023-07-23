@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Course, Recipe } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Unpersisted } from "@/lib/types";
+import { StringifiedDates, Unpersisted } from "@/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { useWritableSearchParams } from "@/lib/hooks/useWritableSearchParams";
@@ -121,7 +121,7 @@ function RecipeSkeleton() {
   );
 }
 
-function SingleRecipe({ recipe }: { recipe: Unpersisted<Recipe> }) {
+function SingleRecipe({ recipe }: { recipe: StringifiedDates<Recipe> }) {
   return (
     <li className="appearance-none overflow-hidden transition-all">
       <Link href={`/recipes/${recipe.id}`}>
