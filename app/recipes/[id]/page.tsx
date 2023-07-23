@@ -33,7 +33,7 @@ export default async function RecipePage({ params }: Props) {
             <ul className="flex gap-1 col-span-4">
               {recipe.courses.map((course) => (
                 <Link
-                  href={`/recipes?course=${course}`}
+                  href={`/?courses=${course}`}
                   key={course}
                   aria-label={`See all ${course} recipes`}
                 >
