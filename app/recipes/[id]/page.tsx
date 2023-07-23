@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { BadgeInfoIcon, CalendarDays, Clock10, Salad } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +37,7 @@ export default async function RecipePage({ params }: Props) {
                   key={course}
                   aria-label={`See all ${course} recipes`}
                 >
-                  <li className="font-extrabold px-2 py-1 bg-pink-200">
+                  <li className="font-extrabold px-2 py-1 bg-pink-200 rounded">
                     {course}
                   </li>
                 </Link>

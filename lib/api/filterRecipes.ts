@@ -14,14 +14,17 @@ type Args = {
   page: number;
 };
 
-const schema = z.array(
-  persisted(recipeSchema).extend({
-    ingredientSets: persisted(ingredientSetSchema).array().min(1),
-    instructionSets: persisted(instructionSetSchema).array().min(1),
-  })
-);
+const schema = z.object({
+  meta: z.object({ count: z.coerce.number(), pages: z.number() }),
+  recipes: z.array(
+    persisted(recipeSchema).extend({
+      ingredientSets: persisted(ingredientSetSchema).array().min(1),
+      instructionSets: persisted(instructionSetSchema).array().min(1),
+    })
+  ),
+});
 
-const TAKE_PER_PAGE = "32";
+const TAKE_PER_PAGE = "36";
 
 export async function filterRecipes({
   courses,

@@ -20,14 +20,17 @@ export async function GET(request: NextRequest) {
     Object.fromEntries(request.nextUrl.searchParams.entries())
   );
 
-  console.log("::: args", args);
-
   const termFilter = args.term
     ? { title: { search: args.term.split(" ").join(" & ") } }
     : {};
   const courseFilter = args.courses
     ? { courses: { hasSome: args.courses } }
     : {};
+
+  const baseQuery = {
+    where: { ...termFilter, ...courseFilter },
+    orderBy: { createdAt: "asc" },
+  };
 
   console.warn("::: applying filters", {
     take: args.take,
@@ -37,12 +40,19 @@ export async function GET(request: NextRequest) {
     include: { ingredientSets: true, instructionSets: true },
   });
 
-  const recipes = await prisma?.recipe.findMany({
+  const count = await prisma.recipe.count(baseQuery);
+
+  const recipes = await prisma.recipe.findMany({
+    ...baseQuery,
     take: args.take,
-    where: { ...termFilter, ...courseFilter },
     skip: (args.page - 1) * args.take,
-    orderBy: { createdAt: "asc" },
     include: { ingredientSets: true, instructionSets: true },
   });
-  return NextResponse.json(recipes);
+  return NextResponse.json({
+    meta: {
+      count,
+      pages: Math.ceil(count / args.take),
+    },
+    recipes,
+  });
 }

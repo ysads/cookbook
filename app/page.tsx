@@ -4,17 +4,20 @@ import RecipeFilterToolbar, {
   RecipeFilters,
 } from "@/components/recipe-filter-toolbar";
 import Link from "next/link";
+import PageNavigation from "@/components/page-navigation";
 import { cn } from "@/lib/utils";
 import { BookmarkPlus, Clock10, Salad } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Queries } from "@/lib/queries";
 import { filterRecipes } from "@/lib/api/filterRecipes";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Recipe } from "@prisma/client";
+import { useEffect, useState } from "react";
+import { Course, Recipe } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Unpersisted } from "@/lib/types";
-import PageNavigation from "@/components/page-navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
+import { useWritableSearchParams } from "@/lib/hooks/useWritableSearchParams";
 
 //  Prisma does not support Edge without the Data Proxy currently
 // export const runtime = "edge";
@@ -23,37 +26,48 @@ export const dynamic = "force-dynamic";
 
 type PageFilters = RecipeFilters & { page: number };
 
+function getFiltersFromSearchParams(params: URLSearchParams) {
+  const page = params.get("page");
+
+  return {
+    term: params.get("term") || "",
+    page: page ? parseInt(page) : 1,
+    courses: params.getAll("courses") as Course[],
+  };
+}
+
 export default function Home() {
-  const [filters, setFilters] = useState<PageFilters>({
-    term: "",
-    page: 1,
-    courses: [],
-  });
+  const { searchParams, getUpdatedQueryString } = useWritableSearchParams();
+  const router = useRouter();
+
+  const [filters, setFilters] = useState<PageFilters>(
+    getFiltersFromSearchParams(searchParams)
+  );
   const recipes = useQuery({
     queryKey: [Queries.filteredRecipes, filters],
     queryFn: () => filterRecipes(filters),
   });
 
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      ...getFiltersFromSearchParams(searchParams),
+    }));
+  }, [searchParams]);
+
   return (
     <main className="relative flex flex-col items-center">
       <div className="space-y-4 w-full">
-        {/* <pre className="pre text-xs">{JSON.stringify(filters, null, 2)}</pre> */}
+        <pre className="pre text-xs">{JSON.stringify(filters, null, 2)}</pre>
         <RecipeFilterToolbar
           filters={filters}
           onFilter={(newFilters) => {
-            setFilters({
-              ...newFilters,
-              page: 1,
-            });
+            router.push(
+              "/?" + getUpdatedQueryString({ ...newFilters, page: 1 }, true)
+            );
           }}
         />
-        <PageNavigation
-          page={filters.page}
-          onNavigate={(newPage) =>
-            setFilters((prev) => ({ ...prev, page: newPage }))
-          }
-        />
-        {recipes.isFetching || recipes.isLoading ? (
+        {recipes.isLoading ? (
           <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             <RecipeSkeleton />
             <RecipeSkeleton />
@@ -62,18 +76,25 @@ export default function Home() {
             <RecipeSkeleton />
             <RecipeSkeleton />
           </ul>
-        ) : recipes.data?.length ? (
+        ) : recipes.data ? (
           <>
+            <Alert role="status">
+              <AlertDescription className="font-semibold">
+                {recipes.data.meta.count} results found
+              </AlertDescription>
+            </Alert>
+            <PageNavigation
+              currPage={filters.page}
+              pages={recipes.data.meta.pages}
+            />
             <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-              {recipes.data.map((r) => (
+              {recipes.data.recipes.map((r) => (
                 <SingleRecipe recipe={r} key={"recipe-" + r.id} />
               ))}
             </ul>
             <PageNavigation
-              page={filters.page}
-              onNavigate={(newPage) =>
-                setFilters((prev) => ({ ...prev, page: newPage }))
-              }
+              currPage={filters.page}
+              pages={recipes.data.meta.pages}
             />
           </>
         ) : (
