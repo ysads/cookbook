@@ -29,3 +29,6 @@ export const COURSES = [
   Course.SOUP,
   Course.OTHER,
 ] as const;
+
+export const IMPORT_STATUS = ["partial", "success", "error"] as const;
+export type ImportStatus = (typeof IMPORT_STATUS)[number];

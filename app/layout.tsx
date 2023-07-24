@@ -45,7 +45,7 @@ export default function RootLayout({
               </p>
               <div className="flex items-center gap-4">
                 <Link
-                  href="/import"
+                  href="/imports"
                   className="text-sm flex items-center gap-2 font-medium text-muted-foreground transition-colors hover:text-primary"
                 >
                   <Import className="w-4 h-4" />

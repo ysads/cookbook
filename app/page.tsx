@@ -83,19 +83,23 @@ export default function Home() {
                 {recipes.data.meta.count} results found
               </AlertDescription>
             </Alert>
-            <PageNavigation
-              currPage={filters.page}
-              pages={recipes.data.meta.pages}
-            />
+            {recipes.data.meta.pages > 0 ? (
+              <PageNavigation
+                currPage={filters.page}
+                pages={recipes.data.meta.pages}
+              />
+            ) : null}
             <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {recipes.data.recipes.map((r) => (
                 <SingleRecipe recipe={r} key={"recipe-" + r.id} />
               ))}
             </ul>
-            <PageNavigation
-              currPage={filters.page}
-              pages={recipes.data.meta.pages}
-            />
+            {recipes.data.meta.pages > 0 ? (
+              <PageNavigation
+                currPage={filters.page}
+                pages={recipes.data.meta.pages}
+              />
+            ) : null}
           </>
         ) : (
           <p>No recipe found</p>
