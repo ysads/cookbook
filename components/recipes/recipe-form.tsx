@@ -42,8 +42,10 @@ import { Badge } from "@/components/ui/badge";
 import { Martian_Mono } from "next/font/google";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef } from "react";
+import { toast } from "../ui/use-toast";
+import { useRouter } from "next/navigation";
 
-const martianMono = Martian_Mono({ subsets: ["latin"], weights: [400] });
+const martianMono = Martian_Mono({ subsets: ["latin"], weights: "400" });
 
 const schema = z.object({
   title: z.string().nonempty(),
@@ -127,6 +129,7 @@ function initialData(parsed: ParserOutput) {
 }
 
 export default function RecipeForm({ parsed }: Props) {
+  const router = useRouter();
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: initialData(parsed),
@@ -145,8 +148,26 @@ export default function RecipeForm({ parsed }: Props) {
     control: form.control,
   });
 
-  function onSubmit(values: z.infer<typeof schema>) {
-    console.log("::::: ✅", values);
+  function onSubmit(data: z.infer<typeof schema>) {
+    fetch(`/api/recipes`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }).then(async (res) => {
+      const body = await res.json();
+
+      if (!res.ok) {
+        return toast({
+          title: "Failed to save recipe",
+          description: "Check the errors and try again",
+        });
+      }
+
+      const { id } = z.object({ id: z.coerce.number() }).parse(body);
+      toast({
+        title: "Recipe saved",
+      });
+      router.replace(`/recipes/${id}`);
+    });
   }
 
   const topRef = useRef<HTMLDivElement>(null);
@@ -187,7 +208,7 @@ export default function RecipeForm({ parsed }: Props) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-2 gap-4"
           >
-            <div className="col-span-2 flex gap-3 items-center">
+            <div className="col-span-2 flex gap-3 items-end">
               <FormField
                 control={form.control}
                 name="title"
@@ -195,19 +216,20 @@ export default function RecipeForm({ parsed }: Props) {
                   <FormItem className="flex-grow">
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="shadcn" {...field} />
+                      <Input placeholder="Low fodmap pork belly" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Badge
+                className="mb-4"
                 variant={
                   parsed.status === "success"
                     ? "success"
                     : parsed.status === "partial"
-                    ? "destructive"
-                    : "outline"
+                    ? "warning"
+                    : "destructive"
                 }
               >
                 {parsed.status}
@@ -345,7 +367,9 @@ export default function RecipeForm({ parsed }: Props) {
                     </FormControl>
                     <SelectContent>
                       {SOURCES.map((s) => (
-                        <SelectItem value={s}>{s}</SelectItem>
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -362,7 +386,7 @@ export default function RecipeForm({ parsed }: Props) {
                   {notesFields.fields.map((field, index) => (
                     <FormField
                       control={form.control}
-                      key={field.id}
+                      key={"notes-" + field.id}
                       name={`notes.${index}.value`}
                       render={({ field }) => (
                         <FormItem>

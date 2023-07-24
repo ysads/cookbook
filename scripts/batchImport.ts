@@ -66,14 +66,28 @@ async function importFromUrl(recipesUrl: string, dryRun: boolean) {
       result.errors.map((error) => {
         console.error(`    Error ${error.path}: ${error.message}`);
       });
-      await prisma.recipeImport.create({
-        data: {
-          url: lead.url,
-          title: lead.title,
-          status: result.status,
-          errors: result.errors,
-        },
+
+      const existingImport = await prisma.recipeImport.findFirst({
+        where: { url: lead.url },
       });
+
+      if (existingImport) {
+        await prisma.recipeImport.update({
+          where: { id: existingImport.id },
+          data: {
+            errors: result.errors,
+          },
+        });
+      } else {
+        await prisma.recipeImport.create({
+          data: {
+            url: lead.url,
+            title: lead.title,
+            status: result.status,
+            errors: result.errors,
+          },
+        });
+      }
     } else if (result.status === "error") {
       console.error(".. Skipped: no parser found for recipe");
     } else {

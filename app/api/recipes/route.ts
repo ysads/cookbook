@@ -2,6 +2,7 @@ import { Course } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { SOURCES } from "@/lib/schemas";
 
 const getSchema = z.object({
   take: z.coerce.number().min(1),
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     take: args.take,
     where: { ...termFilter, ...courseFilter },
     skip: (args.page - 1) * args.take,
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: "desc" },
     include: { ingredientSets: true, instructionSets: true },
   });
 
@@ -55,4 +56,121 @@ export async function GET(request: NextRequest) {
     },
     recipes,
   });
+}
+
+const postSchema = z.object({
+  title: z.string().nonempty(),
+  time: z.string().nonempty(),
+  servings: z.coerce.number().min(1),
+  ingredientSets: z
+    .array(
+      z.object({
+        value: z.object({
+          name: z.string().optional(),
+          ingreds: z
+            .array(
+              z.object({
+                value: z
+                  .string()
+                  .min(1, "You have an empty ingredient, is that right?"),
+              })
+            )
+            .min(1, "You need at least one ingredient"),
+        }),
+      })
+    )
+    .min(1),
+  instructionSets: z
+    .array(
+      z.object({
+        value: z.object({
+          name: z.string().optional(),
+          instructions: z
+            .array(
+              z.object({
+                value: z
+                  .string()
+                  .min(1, "You have an empty instruction, is that right?"),
+              })
+            )
+            .min(1, "You need at least one instruction"),
+        }),
+      })
+    )
+    .min(1),
+  imageUrl: z.string().url(),
+  notes: z.array(
+    z.object({
+      value: z.string().min(1, "You have an empty note, is that right?"),
+    })
+  ),
+  postedAt: z.string().datetime().nullish(),
+  // keywords: z.string().array(),
+  courses: z.array(z.nativeEnum(Course)).min(1),
+  sourceUrl: z.string().url(),
+  source: z.enum(SOURCES),
+});
+
+export async function POST(request: NextRequest) {
+  const validation = postSchema.safeParse(await request.json());
+
+  if (!validation.success) {
+    return NextResponse.json(
+      { errors: validation.error.issues },
+      { status: 400 }
+    );
+  }
+
+  const { ingredientSets, instructionSets, notes, ...recipe } = validation.data;
+
+  const persitedRecipe = await prisma
+    .$transaction(async (tx) => {
+      const existingImports = await tx.recipeImport.findMany({
+        where: { url: recipe.sourceUrl },
+      });
+
+      console.log(
+        "::: will delete",
+        existingImports.map((i) => i.id)
+      );
+
+      await tx.recipeImport.deleteMany({
+        where: { id: { in: existingImports.map((i) => i.id) } },
+      });
+      await tx.recipeImport.create({
+        data: {
+          url: recipe.sourceUrl,
+          title: recipe.title,
+          status: "success",
+        },
+      });
+      return tx.recipe.create({
+        data: {
+          ...recipe,
+          notes: notes.map((n) => n.value),
+          ingredientSets: {
+            createMany: {
+              data: ingredientSets.map((set) => ({
+                name: set.value.name,
+                ingreds: set.value.ingreds.map((i) => i.value),
+              })),
+            },
+          },
+          instructionSets: {
+            createMany: {
+              data: instructionSets.map((set) => ({
+                name: set.value.name,
+                instructions: set.value.instructions.map((i) => i.value),
+              })),
+            },
+          },
+        },
+      });
+    })
+    .catch(() => null);
+
+  if (!persitedRecipe) {
+    return NextResponse.json({}, { status: 400 });
+  }
+  return NextResponse.json(persitedRecipe, { status: 201 });
 }
