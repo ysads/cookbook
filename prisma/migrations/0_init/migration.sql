@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Course" AS ENUM ('BREAKFAST', 'MAIN', 'DRINK', 'SALAD', 'SIDE', 'SNACK', 'SOUP', 'DESSERT', 'OTHER');
+CREATE TYPE "Course" AS ENUM ('BREAKFAST', 'MAIN', 'DRINK', 'SALAD', 'SIDE', 'SNACK', 'SOUP', 'DESSERT', 'SAUCE', 'OTHER');
 
 -- CreateTable
 CREATE TABLE "Recipe" (
@@ -65,6 +65,7 @@ CREATE TABLE "RecipeImport" (
     "url" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "errors" JSONB,
+    "title" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

@@ -1,5 +1,6 @@
 import { Course } from "@prisma/client";
 import { z } from "zod";
+import { IMPORT_STATUS } from "./types";
 
 export const SOURCES = [
   "fodmap-formula",
@@ -28,6 +29,12 @@ export const recipeSchema = z.object({
   courses: z.nativeEnum(Course).array().min(1),
   sourceUrl: z.string().url(),
   source: z.enum(SOURCES),
+});
+
+export const recipeImportSchema = z.object({
+  title: z.string().nonempty(),
+  status: z.enum(IMPORT_STATUS),
+  url: z.string().url(),
 });
 
 export function persisted<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {

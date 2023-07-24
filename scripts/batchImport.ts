@@ -1,22 +1,39 @@
 import { listRecipes, parseRecipe } from "../lib/sources";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../lib/prisma";
+import { SOURCES } from "../lib/sources/types";
 import dotenv from "dotenv";
 
-// type ImportResult = {
-//   status: "skipped" | "updated" | "error" | "success";
-// };
+function* fodmapFormulaUrls() {
+  const cats = [
+    "breakfast",
+    "lunch",
+    "dinner",
+    "dessert",
+    "soupsalad",
+    "side-dishes",
+    "appetizers",
+    "snacks",
+    "drinks",
+  ];
 
-const cats = [
-  // "breakfast",
-  "lunch",
-  "dinner",
-  "dessert",
-  "soupsalad",
-  "side-dishes",
-  "appetizers",
-  "snacks",
-  "drinks",
-];
+  for (const cat of cats) {
+    for (let i = 1; i <= 8; i++) {
+      yield `https://www.fodmapformula.com/category/recipe/${cat}/page/${i}`;
+    }
+  }
+}
+
+function* fodmapEverydayUrls() {
+  for (let i = 27; i <= 45; i++) {
+    yield `https://www.fodmapeveryday.com/recipes/page/${i}`;
+  }
+}
+
+function* karlijnsKitchenUrls() {
+  for (let i = 1; i <= 32; i++) {
+    yield `https://www.karlijnskitchen.com/en/recipes/page/${i}`;
+  }
+}
 
 async function importFromUrl(recipesUrl: string, dryRun: boolean) {
   if (dryRun) console.log("> Running in dry mode");
@@ -52,6 +69,7 @@ async function importFromUrl(recipesUrl: string, dryRun: boolean) {
       await prisma.recipeImport.create({
         data: {
           url: lead.url,
+          title: lead.title,
           status: result.status,
           errors: result.errors,
         },
@@ -83,6 +101,7 @@ async function importFromUrl(recipesUrl: string, dryRun: boolean) {
             prisma.recipeImport.create({
               data: {
                 url: lead.url,
+                title: lead.title,
                 status: result.status,
                 errors: {},
               },
@@ -98,32 +117,38 @@ async function importFromUrl(recipesUrl: string, dryRun: boolean) {
   console.log("> Finished");
 }
 
+const urls = {
+  "fodmap-formula": fodmapFormulaUrls,
+  "fodmap-everyday": fodmapEverydayUrls,
+  karlijns: karlijnsKitchenUrls,
+} as const;
+
+function* vax() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
 async function main() {
   dotenv.config({ path: ".env.local" });
 
-  const recipesUrl = process.argv[2];
+  const source = process.argv[2];
   const dryRun = ["-d", "--dry"].includes(process.argv[3]);
 
-  for (const cat of cats) {
-    for (let i = 1; i <= 8; i++) {
-      try {
-        await importFromUrl(
-          `https://www.fodmapformula.com/category/recipe/drinks/${cat}/page/${i}`,
-          dryRun
-        );
-      } catch (err) {
-        console.error(err);
-      }
+  if (!SOURCES.includes(source)) {
+    throw "Invalid source";
+  }
+  const urlFactory = urls[source];
+
+  console.log("> Importing from source: ", source);
+
+  for (const url of urlFactory()) {
+    try {
+      await importFromUrl(url, dryRun);
+    } catch (err) {
+      console.error(err);
     }
   }
-
-  // await importFromUrl(recipesUrl, dryRun);
-  // for (let i = 32; i <= 45; i++) {
-  //   await importFromUrl(
-  //     `https://www.fodmapeveryday.com/recipes/page/${i}`,
-  //     dryRun
-  //   );
-  // }
 }
 
 main()
