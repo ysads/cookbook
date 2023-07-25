@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Course, Recipe } from "@prisma/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StringifiedDates, Unpersisted } from "@/lib/types";
+import { StringifiedDates } from "@/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { useWritableSearchParams } from "@/lib/hooks/useWritableSearchParams";
@@ -36,7 +36,7 @@ function getFiltersFromSearchParams(params: URLSearchParams) {
   };
 }
 
-export default function Home() {
+export default function ListRecipes() {
   const { searchParams, getUpdatedQueryString } = useWritableSearchParams();
   const router = useRouter();
 
@@ -58,7 +58,7 @@ export default function Home() {
   return (
     <main className="relative flex flex-col items-center">
       <div className="space-y-4 w-full">
-        <pre className="pre text-xs">{JSON.stringify(filters, null, 2)}</pre>
+        {/* <pre className="pre text-xs">{JSON.stringify(session, null, 2)}</pre> */}
         <RecipeFilterToolbar
           filters={filters}
           onFilter={(newFilters) => {
@@ -140,7 +140,10 @@ function SingleRecipe({ recipe }: { recipe: StringifiedDates<Recipe> }) {
       <div className="pl-3 pr-0 py-4 flex flex-col gap-2 mb-6">
         <span className="flex gap-2">
           {recipe.courses.map((c) => (
-            <span className="uppercase text-xs rounded-lg font-bold text-pink-400">
+            <span
+              key={`recipe-${recipe.id}-${c}`}
+              className="uppercase text-xs rounded-lg font-bold text-pink-400"
+            >
               {c}
             </span>
           ))}
