@@ -108,6 +108,7 @@ function initialData(parsed: ParserOutput) {
   if (parsed.status === "success" || parsed.status === "partial") {
     return {
       ...parsed.recipe,
+      postedAt: parsed.recipe?.postedAt?.toISOString(),
       ingredientSets: (parsed.recipe?.ingredientSets || []).map((set) => ({
         value: {
           name: set?.name || "",
