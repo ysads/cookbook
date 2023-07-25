@@ -26,7 +26,9 @@ const MAP_STATUS_TO_VARIANT = {
   error: "destructive",
 };
 
-const tableColumns: ColumnDef<StringifiedDates<RecipeImport>>[] = [
+const tableColumns: ColumnDef<
+  StringifiedDates<Omit<RecipeImport, "errors">>
+>[] = [
   {
     accessorKey: "title",
     header: ({ column }) => {

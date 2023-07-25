@@ -45,7 +45,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
 
-const martianMono = Martian_Mono({ subsets: ["latin"], weights: "400" });
+const martianMono = Martian_Mono({ subsets: ["latin"], weight: "400" });
 
 const schema = z.object({
   title: z.string().nonempty(),
@@ -286,15 +286,17 @@ export default function RecipeForm({ parsed }: Props) {
                             placeholder="https://www.example.com/"
                             {...field}
                           />
-                          <Button
-                            asChild
-                            variant="outline"
-                            title="Open original URL"
-                          >
-                            <a href={parsed.recipe.sourceUrl} target="_blank">
-                              <ArrowUpRightFromCircle className="w-4 h-4" />
-                            </a>
-                          </Button>
+                          {parsed.recipe.sourceUrl && (
+                            <Button
+                              asChild
+                              variant="outline"
+                              title="Open original URL"
+                            >
+                              <a href={parsed.recipe.sourceUrl} target="_blank">
+                                <ArrowUpRightFromCircle className="w-4 h-4" />
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </FormControl>
                       <FormMessage />

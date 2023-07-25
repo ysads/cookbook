@@ -149,9 +149,11 @@ async function main() {
   const source = process.argv[2];
   const dryRun = ["-d", "--dry"].includes(process.argv[3]);
 
+  // @ts-expect-error FIXME: how to type?
   if (!SOURCES.includes(source)) {
     throw "Invalid source";
   }
+  // @ts-expect-error FIXME: how to type?
   const urlFactory = urls[source];
 
   console.log("> Importing from source: ", source);

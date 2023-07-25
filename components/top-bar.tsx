@@ -36,7 +36,7 @@ export default function TopBar() {
             Logout
           </Button>
           <LightSwitcher />
-          {session.data?.user && (
+          {session.data?.user?.image && (
             <img src={session.data.user.image} className="rounded-full w-8" />
           )}
         </div>

@@ -1,5 +1,5 @@
 import { Course } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { prisma } from "../lib/prisma";
 
 async function main() {
   const response = await Promise.all([

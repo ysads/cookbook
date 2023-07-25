@@ -31,15 +31,7 @@ export async function GET(request: NextRequest) {
   const baseQuery = {
     where: { ...termFilter, ...courseFilter },
     orderBy: { createdAt: "asc" },
-  };
-
-  console.warn("::: applying filters", {
-    take: args.take,
-    where: { ...termFilter, ...courseFilter },
-    skip: (args.page - 1) * args.take,
-    orderBy: { createdAt: "desc" },
-    include: { ingredientSets: true, instructionSets: true },
-  });
+  } as const;
 
   const count = await prisma.recipe.count(baseQuery);
 

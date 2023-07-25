@@ -47,13 +47,15 @@ function mapCourseToEnum(el: Element | null) {
 function getServings(document: Document) {
   if (document.querySelector(".yield [data-amount]")?.textContent) {
     return parseInt(
-      document.querySelector(".yield [data-amount]").textContent || "0"
+      document.querySelector(".yield [data-amount]")?.textContent || "0"
     );
   }
   if (document.querySelector(".wprm-recipe-servings")?.textContent) {
-    return document
-      .querySelector(".wprm-recipe-servings")
-      ?.textContent?.replace(/\D*/, "");
+    return parseInt(
+      document
+        .querySelector(".wprm-recipe-servings")
+        ?.textContent?.replace(/\D*/, "") || "0"
+    );
   }
   return 0;
 }
