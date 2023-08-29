@@ -26,7 +26,10 @@ export default function RecipeFilterToolbar({ filters, onFilter }: Props) {
   }
 
   return (
-    <form className="flex gap-2 items-center w-full" onSubmit={handleFilter}>
+    <form
+      className="flex gap-2 items-center w-full flex-wrap"
+      onSubmit={handleFilter}
+    >
       <Input
         type="search"
         className="h-8 w-[250px] lg:w-[350px] shadow-sm"

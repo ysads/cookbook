@@ -68,7 +68,7 @@ export default function ListRecipes() {
           }}
         />
         {recipes.isLoading ? (
-          <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             <RecipeSkeleton />
             <RecipeSkeleton />
             <RecipeSkeleton />
@@ -89,7 +89,7 @@ export default function ListRecipes() {
                 pages={recipes.data.meta.pages}
               />
             ) : null}
-            <ul className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {recipes.data.recipes.map((r) => (
                 <SingleRecipe recipe={r} key={"recipe-" + r.id} />
               ))}

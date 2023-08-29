@@ -25,7 +25,7 @@ export default async function RecipePage({ params }: Props) {
         <h1 className="text-3xl font-extrabold">{recipe.title}</h1>
         <div className="grid grid-cols-12 gap-4">
           <img
-            className="w-full col-span-12 md:col-span-7"
+            className="w-full col-span-12 md:col-span-7 aspect-[4/3] object-cover"
             src={recipe.imageUrl}
             alt={recipe.title}
           />
@@ -37,7 +37,7 @@ export default async function RecipePage({ params }: Props) {
                   key={course}
                   aria-label={`See all ${course} recipes`}
                 >
-                  <li className="font-extrabold px-2 py-1 bg-pink-200 rounded">
+                  <li className="font-extrabold text-sm px-2 py-1 bg-pink-200 rounded">
                     {course}
                   </li>
                 </Link>
