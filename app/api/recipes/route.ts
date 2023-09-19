@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   );
 
   const termFilter = args.term
-    ? { title: { search: args.term.split(" ").join(" & ") } }
+    ? ({ title: { contains: `%${args.term}%`, mode: "insensitive" } } as const)
     : {};
   const courseFilter = args.courses
     ? { courses: { hasSome: args.courses } }
@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     skip: (args.page - 1) * args.take,
     include: { ingredientSets: true, instructionSets: true },
   });
+
   return NextResponse.json({
     meta: {
       count,
