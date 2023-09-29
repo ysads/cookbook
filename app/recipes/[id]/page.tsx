@@ -77,8 +77,10 @@ export default async function RecipePage({ params }: Props) {
           <h2 className="text-2xl font-bold mb-4">Ingredients</h2>
           {recipe.ingredientSets.map((set) => (
             <>
-              {recipe.ingredientSets.length > 1 && set.name && (
-                <h3 className="text-lg font-bold mt-4 mb-1">{set.name}</h3>
+              {recipe.ingredientSets.length > 1 && (
+                <h3 className="text-lg font-bold mt-8 mb-1">
+                  {set.name || "<set-name>"}
+                </h3>
               )}
               <ul className="space-y-2">
                 {set.ingreds.map((ingred, index) => (
@@ -108,9 +110,9 @@ export default async function RecipePage({ params }: Props) {
           {recipe.instructionSets.map((set) => (
             <>
               {recipe.instructionSets.length > 1 && set.name && (
-                <h3 className="text-lg font-bold mt-4 mb-1">{set.name}</h3>
+                <h3 className="text-lg font-bold mt-8 mb-2">{set.name}</h3>
               )}
-              <ul className="space-y-6">
+              <ul className="space-y-4">
                 {set.instructions.map((instruction, index) => (
                   <li
                     key={`set-${set.id}-instruction-${index}`}

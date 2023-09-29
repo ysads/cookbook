@@ -158,6 +158,8 @@ export default function RecipeForm({ parsed }: Props) {
 
       if (!res.ok) {
         return toast({
+          variant: "success",
+          duration: 1000000,
           title: "Failed to save recipe",
           description: "Check the errors and try again",
         });
@@ -385,7 +387,7 @@ export default function RecipeForm({ parsed }: Props) {
               name="notes"
               render={() => (
                 <>
-                  {<FormLabel>Notes</FormLabel>}
+                  {<FormLabel className="block">Notes</FormLabel>}
                   {notesFields.fields.map((field, index) => (
                     <FormField
                       control={form.control}
@@ -401,7 +403,7 @@ export default function RecipeForm({ parsed }: Props) {
                                 placeholder="Plum sauce: make sure to use a low FODMAP sauce."
                               />
                               <Button
-                                variant="ghost"
+                                variant="link"
                                 size="sm"
                                 onClick={() => notesFields.remove(index)}
                               >

@@ -72,10 +72,15 @@ function ResponsiveDropdownMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link href="/imports" className="flex gap-2 items-center">
-            <Import className="w-4 h-4" />
-            Import
-          </Link>
+          <Button asChild variant="link" size="sm">
+            <Link
+              href="/imports"
+              className="flex gap-2 items-center w-full justify-start"
+            >
+              <Import className="w-4 h-4" />
+              Import
+            </Link>
+          </Button>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
@@ -87,7 +92,7 @@ function ResponsiveDropdownMenu() {
   );
 }
 
-function getInitials(name?: string) {
+function getInitials(name?: string | null) {
   return (name || "User")
     .split(" ")
     .map((n) => n[0])
@@ -102,7 +107,10 @@ function UserAvatar() {
 
   return (
     <Avatar>
-      <AvatarImage src={session.data?.user?.image} alt="Open menu" />
+      <AvatarImage
+        src={session.data?.user?.image || undefined}
+        alt="Open menu"
+      />
       <AvatarFallback>{initials}</AvatarFallback>
     </Avatar>
   );
