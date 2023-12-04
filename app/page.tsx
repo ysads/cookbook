@@ -89,7 +89,7 @@ export default function ListRecipes() {
                 pages={recipes.data.meta.pages}
               />
             ) : null}
-            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
               {recipes.data.recipes.map((r) => (
                 <SingleRecipe recipe={r} key={"recipe-" + r.id} />
               ))}
@@ -127,44 +127,52 @@ function RecipeSkeleton() {
 
 function SingleRecipe({ recipe }: { recipe: StringifiedDates<Recipe> }) {
   return (
-    <li className="appearance-none overflow-hidden transition-all">
-      <Link href={`/recipes/${recipe.id}`}>
-        <img
-          src={recipe.imageUrl}
-          alt={recipe.title}
-          className={cn(
-            "h-auto object-cover rounded-xl transition-all hover:scale-105 aspect-[4/3] w-full "
-          )}
-        />
-      </Link>
-      <div className="pl-3 pr-0 py-4 flex flex-col gap-2 mb-6">
-        <span className="flex gap-2">
+    <li className="appearance-none overflow-hidden">
+      <div className="relative bg-gradient-to-b rounded-t-xl">
+        <Link
+          href={`/recipes/${recipe.id}`}
+          className="appearance-none outline-none"
+        >
+          {/* from-black/75 via-gray-800/50 to-gray-500/5 */}
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.title}
+            className={cn(
+              "h-auto object-cover rounded-xl transition-all w-full aspect-square"
+            )}
+          />
+          <div className="absolute top-0 left-0 p-2 pb-8 flex w-full justify-between text-white font-semibold text-sm ">
+            <span>{recipe.time}</span>
+            <span>{recipe.servings}</span>
+          </div>
+        </Link>
+      </div>
+      <div className="pr-0 pt-2 flex flex-col">
+        <span className="text-medium lowercase font-bold">
+          <Link href={`/recipes/${recipe.id}`}>{recipe.title}</Link>
+        </span>
+      </div>
+      <div className="pr-0 pt-1 mb-8 flex flex-col">
+        <span className="flex gap-2 items-center">
           {recipe.courses.map((c) => (
-            <span
-              key={`recipe-${recipe.id}-${c}`}
-              className="uppercase text-xs rounded-lg font-bold text-pink-400"
-            >
-              {c}
-            </span>
+            <>
+              <Link href={`/?courses=${c}`}>
+                <span
+                  key={`recipe-${recipe.id}-${c}`}
+                  className="font-semibold lowercase text-slate-500 text-sm"
+                >
+                  {c}
+                </span>
+              </Link>
+              <span
+                className="last:hidden text-slate-300 font-semibold select-none"
+                aria-hidden
+              >
+                /
+              </span>
+            </>
           ))}
         </span>
-        <div className="flex justify-between">
-          <p className="text-md font-bold line-clamp-2">
-            <Link href={`/recipes/${recipe.id}`}>{recipe.title}</Link>
-          </p>
-          <Button variant="ghost">
-            <BookmarkPlus width={24} />
-          </Button>
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          <span className="flex gap-1">
-            <Clock10 width={16} />
-            {recipe.servings} servings
-          </span>
-          <span className="flex gap-1">
-            <Salad width={16} /> {recipe.time}
-          </span>
-        </div>
       </div>
     </li>
   );
