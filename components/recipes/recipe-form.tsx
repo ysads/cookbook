@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { Control, useFieldArray, useForm } from "react-hook-form";
+import { Control, useFieldArray, useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -148,6 +148,8 @@ export default function RecipeForm({ parsed }: Props) {
     name: "instructionSets",
     control: form.control,
   });
+
+  const { isLoading } = useFormState(form);
 
   function onSubmit(data: z.infer<typeof schema>) {
     fetch(`/api/recipes`, {
@@ -615,7 +617,9 @@ export default function RecipeForm({ parsed }: Props) {
                 ))}
               </div>
             </div>
-            <Button type="submit">Submit</Button>
+            <Button type="submit" disabled={isLoading}>
+              Submit
+            </Button>
           </form>
         </Form>
       )}

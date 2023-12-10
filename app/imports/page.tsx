@@ -17,6 +17,7 @@ import Link from "next/link";
 import ImportFilterToolbar, {
   ImportFilters,
 } from "@/components/imports/import-filter-toolbar";
+import MaxWSize from "@/components/ui/max-w-size";
 
 type Filters = ImportFilters & { page: number };
 
@@ -118,37 +119,39 @@ export default function ImportsPage() {
   });
 
   return (
-    <main className="relative flex h-full flex-col space-y-4">
-      <div className="flex items-center justify-between space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Recipe Imports</h1>
-      </div>
-      <div className="grow">
-        {query.isLoading ? (
-          <ul>
-            {Array(5)
-              .fill(0)
-              .map((_, index) => (
-                <ImportSkeleton key={`import-${index}`} />
-              ))}
-          </ul>
-        ) : (
-          <>
-            <ImportFilterToolbar
-              filters={filters}
-              onFilter={(newFilters) =>
-                setFilters((prev) => ({ ...newFilters, page: 1 }))
-              }
-            />
-            <div className="mx-auto py-10">
-              <DataTable
-                columns={tableColumns}
-                data={query.data?.imports || []}
+    <MaxWSize>
+      <main className="relative flex h-full flex-col space-y-4">
+        <div className="flex items-center justify-between space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Recipe Imports</h1>
+        </div>
+        <div className="grow">
+          {query.isLoading ? (
+            <ul>
+              {Array(5)
+                .fill(0)
+                .map((_, index) => (
+                  <ImportSkeleton key={`import-${index}`} />
+                ))}
+            </ul>
+          ) : (
+            <>
+              <ImportFilterToolbar
+                filters={filters}
+                onFilter={(newFilters) =>
+                  setFilters((prev) => ({ ...newFilters, page: 1 }))
+                }
               />
-            </div>
-          </>
-        )}
-      </div>
-    </main>
+              <div className="mx-auto py-10">
+                <DataTable
+                  columns={tableColumns}
+                  data={query.data?.imports || []}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+    </MaxWSize>
   );
 }
 

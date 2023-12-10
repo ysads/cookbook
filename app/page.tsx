@@ -5,9 +5,9 @@ import RecipeFilterToolbar, {
 } from "@/components/recipe-filter-toolbar";
 import Link from "next/link";
 import PageNavigation from "@/components/page-navigation";
+import MaxWSize from "@/components/ui/max-w-size";
 import { cn } from "@/lib/utils";
-import { BookmarkPlus, Clock10, Salad } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Salad } from "lucide-react";
 import { Queries } from "@/lib/queries";
 import { filterRecipes } from "@/lib/api/filterRecipes";
 import { useQuery } from "@tanstack/react-query";
@@ -56,56 +56,57 @@ export default function ListRecipes() {
   }, [searchParams]);
 
   return (
-    <main className="relative flex flex-col items-center">
-      <div className="space-y-4 w-full">
-        {/* <pre className="pre text-xs">{JSON.stringify(session, null, 2)}</pre> */}
-        <RecipeFilterToolbar
-          filters={filters}
-          onFilter={(newFilters) => {
-            router.push(
-              "/?" + getUpdatedQueryString({ ...newFilters, page: 1 }, true)
-            );
-          }}
-        />
-        {recipes.isLoading ? (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-            <RecipeSkeleton />
-            <RecipeSkeleton />
-            <RecipeSkeleton />
-            <RecipeSkeleton />
-            <RecipeSkeleton />
-            <RecipeSkeleton />
-          </ul>
-        ) : recipes.data ? (
-          <>
-            <Alert role="status">
-              <AlertDescription className="font-semibold">
-                {recipes.data.meta.count} results found
-              </AlertDescription>
-            </Alert>
-            {recipes.data.meta.pages > 0 ? (
-              <PageNavigation
-                currPage={filters.page}
-                pages={recipes.data.meta.pages}
-              />
-            ) : null}
+    <MaxWSize>
+      <main className="relative flex flex-col items-center">
+        <div className="space-y-4 w-full">
+          <RecipeFilterToolbar
+            filters={filters}
+            onFilter={(newFilters) => {
+              router.push(
+                "/?" + getUpdatedQueryString({ ...newFilters, page: 1 }, true)
+              );
+            }}
+          />
+          {recipes.isLoading ? (
             <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
-              {recipes.data.recipes.map((r) => (
-                <SingleRecipe recipe={r} key={"recipe-" + r.id} />
-              ))}
+              <RecipeSkeleton />
+              <RecipeSkeleton />
+              <RecipeSkeleton />
+              <RecipeSkeleton />
+              <RecipeSkeleton />
+              <RecipeSkeleton />
             </ul>
-            {recipes.data.meta.pages > 0 ? (
-              <PageNavigation
-                currPage={filters.page}
-                pages={recipes.data.meta.pages}
-              />
-            ) : null}
-          </>
-        ) : (
-          <p>No recipe found</p>
-        )}
-      </div>
-    </main>
+          ) : recipes.data ? (
+            <>
+              <Alert role="status">
+                <AlertDescription className="font-semibold">
+                  {recipes.data.meta.count} results found
+                </AlertDescription>
+              </Alert>
+              {recipes.data.meta.pages > 0 ? (
+                <PageNavigation
+                  currPage={filters.page}
+                  pages={recipes.data.meta.pages}
+                />
+              ) : null}
+              <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+                {recipes.data.recipes.map((r) => (
+                  <SingleRecipe recipe={r} key={"recipe-" + r.id} />
+                ))}
+              </ul>
+              {recipes.data.meta.pages > 0 ? (
+                <PageNavigation
+                  currPage={filters.page}
+                  pages={recipes.data.meta.pages}
+                />
+              ) : null}
+            </>
+          ) : (
+            <p>No recipe found</p>
+          )}
+        </div>
+      </main>
+    </MaxWSize>
   );
 }
 
@@ -131,9 +132,9 @@ function SingleRecipe({ recipe }: { recipe: StringifiedDates<Recipe> }) {
       <div className="relative bg-gradient-to-b rounded-t-xl">
         <Link
           href={`/recipes/${recipe.id}`}
-          className="appearance-none outline-none"
+          className="appearance-none outline-none overflow-hidden"
         >
-          {/* from-black/75 via-gray-800/50 to-gray-500/5 */}
+          <div className="w-full h-1/2 absolute top-0 left-0 bg-gradient-to-b from-black/60 rounded-t-xl"></div>
           <img
             src={recipe.imageUrl}
             alt={recipe.title}
@@ -141,9 +142,11 @@ function SingleRecipe({ recipe }: { recipe: StringifiedDates<Recipe> }) {
               "h-auto object-cover rounded-xl transition-all w-full aspect-square"
             )}
           />
-          <div className="absolute top-0 left-0 p-2 pb-8 flex w-full justify-between text-white font-semibold text-sm ">
+          <div className="absolute rounded-xl top-0 left-0 p-2 pb-8 flex w-full justify-between text-white font-semibold text-sm">
             <span>{recipe.time}</span>
-            <span>{recipe.servings}</span>
+            <span className="flex gap-2 items-center">
+              <Salad width={16} /> {recipe.servings}
+            </span>
           </div>
         </Link>
       </div>
@@ -156,13 +159,11 @@ function SingleRecipe({ recipe }: { recipe: StringifiedDates<Recipe> }) {
         <span className="flex gap-2 items-center">
           {recipe.courses.map((c) => (
             <>
-              <Link href={`/?courses=${c}`}>
-                <span
-                  key={`recipe-${recipe.id}-${c}`}
-                  className="font-semibold lowercase text-slate-500 text-sm"
-                >
-                  {c}
-                </span>
+              <Link
+                href={`/?courses=${c}`}
+                className="font-semibold lowercase text-slate-500 text-sm "
+              >
+                <span key={`recipe-${recipe.id}-${c}`}>{c}</span>
               </Link>
               <span
                 className="last:hidden text-slate-300 font-semibold select-none"

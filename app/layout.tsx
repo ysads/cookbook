@@ -42,7 +42,8 @@ export default async function PrivateLayout({
         <Providers session={session}>
           <>
             <TopBar />
-            <div className="p-3 md:p-8 max-w-screen-xl mx-auto">{children}</div>
+            <div className="p-0">{children}</div>
+            {/* <div className="p-3 md:p-8 max-w-screen-xl mx-auto">{children}</div> */}
             <Toaster />
           </>
         </Providers>
