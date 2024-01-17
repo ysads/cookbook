@@ -41,7 +41,7 @@ export async function filterImports({
     params.append("url", url);
   }
   if (status) {
-    params.append("status", status[0]);
+    status.map((s) => params.append("status", s));
   }
   if (term) {
     params.append("term", term);

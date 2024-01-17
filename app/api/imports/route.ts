@@ -2,12 +2,17 @@ import { Course } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { IMPORT_STATUS } from "@/lib/types";
 
 const getSchema = z.object({
   term: z.string().optional(),
   take: z.coerce.number().min(1),
   lastId: z.coerce.number().nullish(),
-  status: z.string().optional(),
+  status: z
+    .enum(IMPORT_STATUS)
+    .or(z.enum(IMPORT_STATUS).array())
+    .optional()
+    .transform((val) => (typeof val === "string" ? [val] : val)),
   page: z.coerce.number().min(0).default(0),
   courses: z
     .string()
@@ -16,9 +21,19 @@ const getSchema = z.object({
     .nullish(),
 });
 
+// INFO: needed because Object.entries() doesn't work with arrays
+function objFromSearchParams(searchParams: URLSearchParams) {
+  const obj: Record<string, any> = {};
+  for (const key of searchParams.keys()) {
+    const values = searchParams.getAll(key);
+    obj[key] = values.length === 1 ? values[0] : values;
+  }
+  return obj;
+}
+
 export async function GET(request: NextRequest) {
   const args = getSchema.parse(
-    Object.fromEntries(request.nextUrl.searchParams.entries())
+    objFromSearchParams(request.nextUrl.searchParams)
   );
 
   const termFilter = args.term
@@ -37,7 +52,7 @@ export async function GET(request: NextRequest) {
   const count = await prisma.recipeImport.count({
     where: {
       AND: {
-        status: args.status,
+        status: { in: args.status },
         ...termFilter,
       },
     },
@@ -47,7 +62,7 @@ export async function GET(request: NextRequest) {
   const imports = await prisma.recipeImport.findMany({
     where: {
       AND: {
-        status: args.status,
+        status: { in: args.status },
         ...termFilter,
       },
     },
