@@ -21,12 +21,14 @@ export default function ImportFilterToolbar({ filters, onFilter }: Props) {
 
   function handleFilter(evt: React.FormEvent) {
     evt.preventDefault();
-    console.log(":::::", localFilters);
     onFilter(localFilters);
   }
 
   return (
-    <form className="flex gap-2 items-center w-full" onSubmit={handleFilter}>
+    <form
+      className="flex flex-col sm:flex-row gap-2 sm:items-center sm:w-full"
+      onSubmit={handleFilter}
+    >
       <Input
         type="search"
         className="h-8 w-[250px] lg:w-[350px] shadow-sm"

@@ -94,7 +94,6 @@ const schema = z.object({
     })
   ),
   postedAt: z.string().datetime().nullish(),
-  // keywords: z.string().array(),
   courses: z.array(z.nativeEnum(Course)).min(1),
   sourceUrl: z.string().url(),
   source: z.enum(SOURCES),

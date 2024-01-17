@@ -8,7 +8,7 @@ const getSchema = z.object({
   take: z.coerce.number().min(1),
   lastId: z.coerce.number().nullish(),
   status: z.string().optional(),
-  page: z.coerce.number().min(1).default(1),
+  page: z.coerce.number().min(0).default(0),
   courses: z
     .string()
     .transform((val, _) => (val ? val.split(",") : []))
@@ -24,28 +24,36 @@ export async function GET(request: NextRequest) {
   const termFilter = args.term
     ? {
         OR: [
-          { title: { contains: args.term } },
-          { url: { contains: args.term } },
+          {
+            title: { contains: `%${args.term}%`, mode: "insensitive" } as const,
+          },
+          {
+            url: { contains: `%${args.term}%`, mode: "insensitive" } as const,
+          },
         ],
       }
     : {};
 
   const count = await prisma.recipeImport.count({
     where: {
-      status: args.status,
-      ...termFilter,
+      AND: {
+        status: args.status,
+        ...termFilter,
+      },
     },
     orderBy: { createdAt: "asc" },
   });
 
   const imports = await prisma.recipeImport.findMany({
     where: {
-      status: args.status,
-      ...termFilter,
+      AND: {
+        status: args.status,
+        ...termFilter,
+      },
     },
     orderBy: { createdAt: "asc" },
     take: args.take,
-    skip: (args.page - 1) * args.take,
+    skip: args.page * args.take,
   });
 
   return NextResponse.json({

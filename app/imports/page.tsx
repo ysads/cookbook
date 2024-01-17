@@ -11,21 +11,24 @@ import { RecipeImport } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit } from "lucide-react";
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import ImportFilterToolbar, {
   ImportFilters,
 } from "@/components/imports/import-filter-toolbar";
 import MaxWSize from "@/components/ui/max-w-size";
+import { useRouter } from "next/navigation";
+import { useWritableSearchParams } from "@/lib/hooks/useWritableSearchParams";
 
-type Filters = ImportFilters & { page: number };
+type Filters = ImportFilters & { page: number; take: number };
 
 const MAP_STATUS_TO_VARIANT = {
   partial: "warning",
   success: "success",
   error: "destructive",
 };
+
+const TAKE_PER_PAGE = 10;
 
 const tableColumns: ColumnDef<
   StringifiedDates<Omit<RecipeImport, "errors">>
@@ -108,11 +111,20 @@ const tableColumns: ColumnDef<
 ];
 
 export default function ImportsPage() {
-  const [filters, setFilters] = useState<Filters>({
-    page: 1,
-    term: "",
-    status: ["partial"],
-  });
+  const router = useRouter();
+  const { searchParams, setSearchParams } =
+    useWritableSearchParams<Filters>(router);
+
+  const filters: Filters = {
+    term: searchParams.get("term") || "",
+    status: searchParams.has("status")
+      ? (searchParams.getAll("status") as Filters["status"])
+      : ["partial"],
+    page: parseInt(searchParams.get("page") || "0"),
+    take: TAKE_PER_PAGE,
+  };
+  const pagination = { pageIndex: filters.page, pageSize: filters.take };
+
   const query = useQuery({
     queryKey: [Queries.filteredImports, filters],
     queryFn: () => filterImports(filters),
@@ -125,8 +137,21 @@ export default function ImportsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Recipe Imports</h1>
         </div>
         <div className="grow">
-          {query.isLoading ? (
-            <ul>
+          <ImportFilterToolbar
+            filters={filters}
+            onFilter={(newFilters) => {
+              setSearchParams(
+                {
+                  page: 0,
+                  term: newFilters.term,
+                  status: newFilters.status,
+                },
+                true
+              );
+            }}
+          />
+          {query.isInitialLoading ? (
+            <ul className="py-10">
               {Array(5)
                 .fill(0)
                 .map((_, index) => (
@@ -134,20 +159,26 @@ export default function ImportsPage() {
                 ))}
             </ul>
           ) : (
-            <>
-              <ImportFilterToolbar
-                filters={filters}
-                onFilter={(newFilters) =>
-                  setFilters((prev) => ({ ...newFilters, page: 1 }))
-                }
+            <div className="mx-auto py-10">
+              <DataTable
+                columns={tableColumns}
+                data={query.data?.imports || []}
+                tableOptions={{
+                  manualPagination: true,
+                  state: { pagination },
+                  pageCount: query.data?.meta.pages,
+                  onPaginationChange: (updater) => {
+                    // INFO: the arg is a functional updater, ie, a fn takes current state
+                    // and uses it to produce the next state -- despite the types suggesting
+                    // the argument could *already* be the updated state.
+                    if (typeof updater === "function") {
+                      const nextState = updater(pagination);
+                      setSearchParams({ page: nextState.pageIndex });
+                    }
+                  },
+                }}
               />
-              <div className="mx-auto py-10">
-                <DataTable
-                  columns={tableColumns}
-                  data={query.data?.imports || []}
-                />
-              </div>
-            </>
+            </div>
           )}
         </div>
       </main>

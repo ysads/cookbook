@@ -50,7 +50,7 @@ export default async function RecipePage({ params }: Props) {
         </div>
       </div>
       <MaxWSize>
-        <div className="grid gap-6 grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
           <div>
             <span className="text-slate-500 lowercase">Courses</span>
             <div className="flex items-center gap-2">
@@ -72,6 +72,7 @@ export default async function RecipePage({ params }: Props) {
               ))}
             </div>
           </div>
+          <DashedSeparator className="md:hidden" />
           <div>
             <span className="block text-slate-500 lowercase text-left">
               Source
@@ -86,7 +87,7 @@ export default async function RecipePage({ params }: Props) {
           </div>
         </div>
         <DashedSeparator className="my-10" />
-        <div className="grid gap-6 grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
           <div className="my-2 space-x-1.5">
             <span className="font-bold text-4xl text-gray-900">
               {timeStart}
@@ -95,6 +96,7 @@ export default async function RecipePage({ params }: Props) {
               {Array.isArray(timeRest) ? timeRest.join(" ") : timeRest}
             </span>
           </div>
+          <DashedSeparator className="md:hidden" />
           <div className="my-2 space-x-1.5">
             <span className="font-bold text-4xl text-gray-900">
               {recipe.servings}

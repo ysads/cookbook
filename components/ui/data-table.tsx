@@ -3,6 +3,7 @@
 import {
   ColumnDef,
   SortingState,
+  TableOptions,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -19,29 +20,35 @@ import {
 } from "@/components/ui/table";
 import { Button } from "./button";
 import { useState } from "react";
+import { deepMerge } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  tableOptions: Partial<TableOptions<TData>>;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  tableOptions,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-  });
+  const table = useReactTable(
+    deepMerge(
+      {
+        data,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        onSortingChange: setSorting,
+        getSortedRowModel: getSortedRowModel(),
+        state: { sorting },
+      },
+      tableOptions
+    )
+  );
 
   return (
     <div>
@@ -95,23 +102,31 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex justify-between">
+        <div className="flex items-center justify-start text-sm">
+          <span>
+            Page <b>{table.getState().pagination.pageIndex}</b> of{" "}
+            <b>{table.getPageCount() - 1}</b>
+          </span>
+        </div>
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,10 @@
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import { useSearchParams } from "next/navigation";
 
-export function useWritableSearchParams() {
+export function useWritableSearchParams<T>(router: AppRouterInstance) {
   const searchParams = useSearchParams();
 
-  function getUpdatedQueryString<T extends string | number | boolean>(
-    args: Record<string, T | T[]>,
-    overrideExisting = false
-  ) {
+  function getUpdatedQueryString(args: Partial<T>, overrideExisting = false) {
     const newParams = new URLSearchParams(
       overrideExisting ? "" : searchParams.toString()
     );
@@ -20,5 +18,14 @@ export function useWritableSearchParams() {
     return newParams.toString();
   }
 
-  return { searchParams, getUpdatedQueryString };
+  function setSearchParams(args: Partial<T>, overrideExisting = false) {
+    router.push(
+      `${window.location.pathname}?${getUpdatedQueryString(
+        args,
+        overrideExisting
+      )}`
+    );
+  }
+
+  return { searchParams, getUpdatedQueryString, setSearchParams };
 }

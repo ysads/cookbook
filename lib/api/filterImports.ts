@@ -8,6 +8,7 @@ type Args = {
   // courses?: Course[];
   lastId?: number;
   page: number;
+  take: number;
 };
 
 const schema = z.object({
@@ -21,18 +22,19 @@ const schema = z.object({
   //   ),
 });
 
-const TAKE_PER_PAGE = "36";
+const TAKE_PER_PAGE = 36;
 
 export async function filterImports({
   status,
   url,
   term,
   lastId = undefined,
+  take = TAKE_PER_PAGE,
   page,
 }: Args) {
   const params = new URLSearchParams({
     page: String(page),
-    take: TAKE_PER_PAGE,
+    take: String(take),
   });
 
   if (url) {
