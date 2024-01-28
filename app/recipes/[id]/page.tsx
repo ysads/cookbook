@@ -1,23 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calistoga, Taviraj } from "next/font/google";
+import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import MaxWSize from "@/components/ui/max-w-size";
-import { ArrowUpRight } from "lucide-react";
-
-const taviraj = Taviraj({
-  weight: ["600", "700", "800"],
-  subsets: ["latin-ext"],
-});
-
-const calistoga = Calistoga({ weight: ["400"], subsets: ["latin-ext"] });
-
-const formatter = Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "2-digit",
-  year: "numeric",
-});
 
 type Props = {
   params: { id: string };
@@ -105,7 +91,7 @@ export default async function RecipePage({ params }: Props) {
           </div>
         </div>
         <DashedSeparator className="my-10" />
-        <div className="grid grid-cols-2 gap-8 col-span-12">
+        <div className="grid grid-cols-2 gap-10 col-span-12">
           <section>
             <div className="sticky top-0">
               <h2 className="text-2xl font-bold mb-4">Ingredients</h2>
@@ -152,10 +138,10 @@ export default async function RecipePage({ params }: Props) {
                   {set.instructions.map((instruction, index) => (
                     <li
                       key={`set-${set.id}-instruction-${index}`}
-                      className="flex gap-9 items-start"
+                      className="flex md:gap-4 md:items-center flex-col md:flex-row gap-2 items-start"
                     >
                       <span
-                        className="font-bold text-4xl mt-1 grid place-items-center shrink-0 text-slate-400"
+                        className="font-bold text-2xl lg:text-4xl mt-1 grid place-items-start shrink-0 text-slate-400 min-w-[10px] lg:min-w-[50px]"
                         aria-hidden
                       >
                         {index + 1}.
@@ -178,14 +164,13 @@ export default async function RecipePage({ params }: Props) {
               <h2 className="text-2xl font-bold mb-4">Notes</h2>
               <ul className="gap-4 grid grid-cols-1 md:grid-cols-2">
                 {recipe.notes.map((note, index) => (
-                  <li key={`node-${index}`} className="flex gap-9 items-start">
+                  <li key={`node-${index}`} className="flex gap-9 items-center">
                     <span
-                      className="font-bold text-4xl mt-1 w-5 h-5 grid place-items-center shrink-0 text-slate-400"
+                      className="font-bold text-4xl mt-1 w-5 h-fit grid place-items-center shrink-0 text-slate-400"
                       aria-hidden
                     >
                       /
                     </span>
-
                     <div dangerouslySetInnerHTML={{ __html: note }}></div>
                   </li>
                 ))}

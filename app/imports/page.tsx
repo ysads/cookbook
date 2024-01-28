@@ -110,7 +110,7 @@ const tableColumns: ColumnDef<
   },
 ];
 
-export default function ImportsPage() {
+export default async function ImportsPage() {
   const router = useRouter();
   const { searchParams, setSearchParams } =
     useWritableSearchParams<Filters>(router);

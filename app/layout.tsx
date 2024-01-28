@@ -44,7 +44,16 @@ export default async function PrivateLayout({
           <>
             <TopBar />
             <div className="p-0">
-              <Suspense fallback={<p>Loading...</p>}>{children}</Suspense>
+              <Suspense
+                fallback={
+                  <div className="bg-teal-600">
+                    <h1 className="text-4xl text-white">Loading</h1>
+                    <p className="text-teal-100">Something cool comes</p>
+                  </div>
+                }
+              >
+                {children}
+              </Suspense>
             </div>
             <Toaster />
           </>

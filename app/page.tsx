@@ -36,9 +36,10 @@ function getFiltersFromSearchParams(params: URLSearchParams) {
   };
 }
 
-export default function ListRecipes() {
-  const { searchParams, getUpdatedQueryString } = useWritableSearchParams();
+export default async function ListRecipes() {
   const router = useRouter();
+  const { searchParams, getUpdatedQueryString } =
+    useWritableSearchParams(router);
 
   const [filters, setFilters] = useState<PageFilters>(
     getFiltersFromSearchParams(searchParams)
