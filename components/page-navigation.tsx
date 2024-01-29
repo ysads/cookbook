@@ -1,7 +1,8 @@
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { Button } from "./ui/button";
-import Link from "next/link";
 import { useWritableSearchParams } from "@/lib/hooks/useWritableSearchParams";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Props = {
   pages: number;
@@ -9,7 +10,8 @@ type Props = {
 };
 
 export default function PageNavigation({ currPage, pages }: Props) {
-  const { getUpdatedQueryString } = useWritableSearchParams();
+  const router = useRouter();
+  const { getUpdatedQueryString } = useWritableSearchParams(router);
   const nextPage = currPage + 1;
   const prevPage = currPage - 1;
 

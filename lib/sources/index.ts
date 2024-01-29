@@ -34,6 +34,7 @@ export type ParserOutput =
     };
 
 export async function parseRecipe(url: string): Promise<ParserOutput> {
+  console.log(":::::::::::::::::::::::::::::::::::");
   const page = await axios.get(url);
   const dom = new JSDOM(page.data);
   const input = { document: dom.window.document, url };

@@ -8,9 +8,15 @@ import { filterImports } from "@/lib/api/filterImports";
 import { Queries } from "@/lib/queries";
 import { StringifiedDates } from "@/lib/types";
 import { RecipeImport } from "@prisma/client";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit } from "lucide-react";
+import {
+  Archive,
+  ArchiveX,
+  ArrowUpDown,
+  Edit,
+  PackageMinus,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import ImportFilterToolbar, {
@@ -19,6 +25,13 @@ import ImportFilterToolbar, {
 import MaxWSize from "@/components/ui/max-w-size";
 import { useRouter } from "next/navigation";
 import { useWritableSearchParams } from "@/lib/hooks/useWritableSearchParams";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "@/components/ui/use-toast";
+import { useMemo } from "react";
 
 type Filters = ImportFilters & { page: number; take: number };
 
@@ -30,9 +43,9 @@ const MAP_STATUS_TO_VARIANT = {
 
 const TAKE_PER_PAGE = 10;
 
-const tableColumns: ColumnDef<
-  StringifiedDates<Omit<RecipeImport, "errors">>
->[] = [
+const buildTableColumns = (
+  queryClient: QueryClient
+): ColumnDef<StringifiedDates<Omit<RecipeImport, "errors">>>[] => [
   {
     accessorKey: "title",
     header: ({ column }) => {
@@ -96,15 +109,60 @@ const tableColumns: ColumnDef<
     id: "actions",
     cell: ({ row }) => {
       return (
-        <Button
-          asChild
-          className="rounded-full w-8 h-8 p-2"
-          variant="secondary"
-        >
-          <Link href={`/imports/${row.original.id}`}>
-            <Edit />
-          </Link>
-        </Button>
+        <div className="flex space-x-2">
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                asChild
+                className="rounded-full w-8 h-8 p-2"
+                variant="secondary"
+              >
+                <Link href={`/imports/${row.original.id}`}>
+                  <Edit />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                className="rounded-full w-8 h-8 p-2"
+                variant="destructive"
+                onClick={() => {
+                  console.log("::: row", row.original);
+                  fetch(`/api/imports/reject`, {
+                    method: "post",
+                    body: JSON.stringify({ id: row.original.id }),
+                  }).then((res) => {
+                    if (res.ok) {
+                      queryClient
+                        .invalidateQueries([Queries.filteredImports])
+                        .then(() => {
+                          toast(
+                            res.ok
+                              ? {
+                                  variant: "success",
+                                  title: "Rejected!",
+                                  duration: 1000,
+                                }
+                              : {
+                                  variant: "destructive",
+                                  title: "Failed to reject",
+                                  duration: 1000,
+                                }
+                          );
+                        });
+                    }
+                  });
+                }}
+              >
+                <ArchiveX />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Reject</TooltipContent>
+          </Tooltip>
+        </div>
       );
     },
   },
@@ -112,6 +170,7 @@ const tableColumns: ColumnDef<
 
 export default async function ImportsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { searchParams, setSearchParams } =
     useWritableSearchParams<Filters>(router);
 
@@ -129,6 +188,11 @@ export default async function ImportsPage() {
     queryKey: [Queries.filteredImports, filters],
     queryFn: () => filterImports(filters),
   });
+
+  const tableColumns = useMemo(
+    () => buildTableColumns(queryClient),
+    [queryClient]
+  );
 
   return (
     <MaxWSize>

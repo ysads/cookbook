@@ -30,5 +30,10 @@ export const COURSES = [
   Course.OTHER,
 ] as const;
 
-export const IMPORT_STATUS = ["partial", "success", "error"] as const;
+export const IMPORT_STATUS = [
+  "partial",
+  "success",
+  "error",
+  "rejected",
+] as const;
 export type ImportStatus = (typeof IMPORT_STATUS)[number];

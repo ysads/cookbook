@@ -1,7 +1,9 @@
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import { useSearchParams } from "next/navigation";
 
-export function useWritableSearchParams<T>(router: AppRouterInstance) {
+export function useWritableSearchParams<T extends Record<string, any>>(
+  router: AppRouterInstance
+) {
   const searchParams = useSearchParams();
 
   function getUpdatedQueryString(args: Partial<T>, overrideExisting = false) {

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ThemeProvider } from "./theme/theme-provider";
 import { SessionProvider } from "next-auth/react";
 import { Session } from "next-auth";
+import { TooltipProvider } from "./ui/tooltip";
 
 type Props = {
   children: React.ReactNode;
@@ -20,9 +21,11 @@ export default function Providers({ children, session }: Props) {
 
   return (
     <SessionProvider session={session}>
-      <ThemeProvider>
-        <QueryClientProvider client={client}>{children}</QueryClientProvider>
-      </ThemeProvider>
+      <TooltipProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={client}>{children}</QueryClientProvider>
+        </ThemeProvider>
+      </TooltipProvider>
     </SessionProvider>
   );
 }

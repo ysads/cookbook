@@ -116,6 +116,8 @@ export async function POST(request: NextRequest) {
 
   const { ingredientSets, instructionSets, notes, ...recipe } = validation.data;
 
+  console.log("::: vali", validation.data);
+
   const persitedRecipe = await prisma
     .$transaction(async (tx) => {
       const existingImports = await tx.recipeImport.findMany({
@@ -123,7 +125,7 @@ export async function POST(request: NextRequest) {
       });
 
       console.log(
-        "::: will delete",
+        "::: deleting following imports",
         existingImports.map((i) => i.id)
       );
 
@@ -160,7 +162,10 @@ export async function POST(request: NextRequest) {
         },
       });
     })
-    .catch(() => null);
+    .catch((err) => {
+      console.log("err", err);
+      return null;
+    });
 
   if (!persitedRecipe) {
     return NextResponse.json({}, { status: 400 });

@@ -1,13 +1,26 @@
 import { Course } from "@prisma/client";
 import { Parser } from "../types";
 
-function mapCourseToEnum(el: Element | null) {
-  if (!el) return [];
-  const courses = el.textContent?.split(",").map((s) => s.trim()) || [];
+function mapCourseToEnum(document: Document) {
+  const categories =
+    document.querySelector(".tasty-recipes-category")?.textContent || "";
+  const breadcrumbs =
+    document.querySelector("#breadcrumbs span")?.textContent || "";
+  if (!categories && !breadcrumbs) return [];
+
+  const courses = [
+    ...(categories.split(",").map((s) => s.trim()) || []),
+    breadcrumbs,
+  ];
+
+  console.log("::: courses", courses);
+
   const set = new Set<Course>();
 
   for (const course of courses) {
     const lCourse = course.toLowerCase();
+    console.log("::: lcourse", lCourse);
+
     if (
       ["main", "dinner", "diner", "lunch", "brunch"].some((k) =>
         lCourse.match(k)
@@ -42,11 +55,12 @@ function mapCourseToEnum(el: Element | null) {
       set.add(Course.SALAD);
     }
   }
+  console.log("::: arr", Array.from(set));
   return Array.from(set);
 }
 
 export const karlijns: Parser = {
-  name: "fodmap-everyday",
+  name: "karlijns",
 
   canList: ({ url }) =>
     Boolean(url.match(/karlijnskitchen.com\/en\/(recipes|tag)/)),
@@ -136,9 +150,7 @@ export const karlijns: Parser = {
       time,
       postedAt,
       notes,
-      courses: mapCourseToEnum(
-        document.querySelector(".tasty-recipes-category")
-      ),
+      courses: mapCourseToEnum(document),
       keywords: [],
       imageUrl:
         document.querySelector(".entry-content img")?.getAttribute("src") || "",
