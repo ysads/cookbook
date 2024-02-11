@@ -39,6 +39,7 @@ const MAP_STATUS_TO_VARIANT = {
   partial: "warning",
   success: "success",
   error: "destructive",
+  rejected: "destructive",
 };
 
 const TAKE_PER_PAGE = 10;
@@ -131,7 +132,7 @@ const buildTableColumns = (
                 variant="destructive"
                 onClick={() => {
                   console.log("::: row", row.original);
-                  fetch(`/api/imports/reject`, {
+                  fetch("/api/imports/reject", {
                     method: "post",
                     body: JSON.stringify({ id: row.original.id }),
                   }).then((res) => {

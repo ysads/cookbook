@@ -1,11 +1,26 @@
 import RecipeForm from "@/components/recipes/recipe-form";
+import ImportHeader from "@/components/imports/import-header";
+import RecipeParsingOutput from "@/components/recipes/recipe-parsing-output";
 import MaxWSize from "@/components/ui/max-w-size";
+
 import { prisma } from "@/lib/prisma";
 import { parseRecipe } from "@/lib/sources";
+import { Metadata } from "next";
 
 type Props = {
   params: { id: string };
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const recipeImport = await prisma.recipeImport.findUnique({
+    where: { id: parseInt(params.id) },
+  });
+
+  return {
+    title: recipeImport ? `Importing ${recipeImport.title}` : "Cookbook",
+  };
+}
+
 export default async function SingleImportPage({ params }: Props) {
   const recipeImport = await prisma.recipeImport.findUnique({
     where: { id: parseInt(params.id) },
@@ -17,11 +32,8 @@ export default async function SingleImportPage({ params }: Props) {
   return (
     <MaxWSize>
       <main className="relative flex h-full flex-col space-y-4">
-        <div className="flex items-center justify-between space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Editing {recipeImport.title}
-          </h1>
-        </div>
+        <ImportHeader recipeImport={recipeImport} />
+        <RecipeParsingOutput parsed={parsed} />
         <RecipeForm parsed={parsed} />
       </main>
     </MaxWSize>

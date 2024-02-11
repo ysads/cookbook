@@ -2,12 +2,24 @@ import { prisma } from "@/lib/prisma";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Metadata } from "next";
 import Link from "next/link";
 import MaxWSize from "@/components/ui/max-w-size";
 
 type Props = {
   params: { id: string };
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const recipe = await prisma.recipe.findUnique({
+    where: { id: parseInt(params.id) },
+  });
+
+  return {
+    title: recipe ? `${recipe.title} - Cookbook` : "Cookbook",
+  };
+}
+
 export default async function RecipePage({ params }: Props) {
   const recipe = await prisma.recipe.findUnique({
     where: { id: parseInt(params.id) },

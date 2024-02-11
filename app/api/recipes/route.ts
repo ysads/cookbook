@@ -116,9 +116,7 @@ export async function POST(request: NextRequest) {
 
   const { ingredientSets, instructionSets, notes, ...recipe } = validation.data;
 
-  console.log("::: vali", validation.data);
-
-  const persitedRecipe = await prisma
+  const result = await prisma
     .$transaction(async (tx) => {
       const existingImports = await tx.recipeImport.findMany({
         where: { url: recipe.sourceUrl },
@@ -128,6 +126,15 @@ export async function POST(request: NextRequest) {
         "::: deleting following imports",
         existingImports.map((i) => i.id)
       );
+
+      const existingRecipe = await tx.recipe.findFirst({
+        where: { sourceUrl: recipe.sourceUrl },
+      });
+      if (existingRecipe) {
+        throw new Error(
+          "This recipe has already been imported! ID: " + existingRecipe.id
+        );
+      }
 
       await tx.recipeImport.deleteMany({
         where: { id: { in: existingImports.map((i) => i.id) } },
@@ -162,13 +169,11 @@ export async function POST(request: NextRequest) {
         },
       });
     })
-    .catch((err) => {
-      console.log("err", err);
-      return null;
-    });
+    .then((recipe) => ({ success: true, recipe } as const))
+    .catch((err) => ({ success: false, error: err.message } as const));
 
-  if (!persitedRecipe) {
-    return NextResponse.json({}, { status: 400 });
+  if (!result.success) {
+    return NextResponse.json({ error: result.error }, { status: 400 });
   }
-  return NextResponse.json(persitedRecipe, { status: 201 });
+  return NextResponse.json(result.recipe, { status: 201 });
 }

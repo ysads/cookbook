@@ -25,11 +25,10 @@ import {
 import { cn } from "@/lib/utils";
 import { SOURCES } from "@/lib/sources/types";
 import { ParserOutput } from "@/lib/sources";
-import { Course } from "@prisma/client";
+import { Course, RecipeImport } from "@prisma/client";
 import { COURSES } from "@/lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  AlertCircle,
   ArrowUpRightFromCircle,
   FolderPlus,
   FolderX,
@@ -37,15 +36,10 @@ import {
   X,
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Martian_Mono } from "next/font/google";
-import { Label } from "@/components/ui/label";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { toast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
-
-const martianMono = Martian_Mono({ subsets: ["latin"], weight: "400" });
+import { useMutation } from "@tanstack/react-query";
 
 const schema = z.object({
   title: z.string().nonempty(),
@@ -98,6 +92,7 @@ const schema = z.object({
   sourceUrl: z.string().url(),
   source: z.enum(SOURCES),
 });
+type FormSchema = z.infer<typeof schema>;
 
 type Props = {
   parsed: ParserOutput;
@@ -122,7 +117,7 @@ function initialData(parsed: ParserOutput) {
       })),
       notes: parsed.recipe?.notes?.length
         ? (parsed.recipe?.notes || []).map((n) => ({ value: n }))
-        : [{ value: "" }],
+        : [],
     };
   }
   return {};
@@ -148,65 +143,53 @@ export default function RecipeForm({ parsed }: Props) {
     control: form.control,
   });
 
-  const { isLoading } = useFormState(form);
+  const formState = useFormState(form);
 
-  function onSubmit(data: z.infer<typeof schema>) {
-    fetch(`/api/recipes`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }).then(async (res) => {
-      const body = await res.json();
-
-      if (!res.ok) {
-        return toast({
-          variant: "success",
-          duration: 1000000,
-          title: "Failed to save recipe",
-          description: "Check the errors and try again",
+  const submitMutation = useMutation({
+    mutationFn: (data: FormSchema) =>
+      new Promise(async (resolve, reject) => {
+        return fetch(`/api/recipes`, {
+          method: "POST",
+          body: JSON.stringify(data),
+        }).then(async (res) => {
+          const body = await res.json();
+          return res.ok ? resolve(body) : reject(body.error || "Try again");
         });
-      }
-
-      const { id } = z.object({ id: z.coerce.number() }).parse(body);
+      }),
+    onSuccess: async (res) => {
+      const { id } = z.object({ id: z.coerce.number() }).parse(res);
       toast({
+        variant: "success",
         title: "Recipe saved",
+        duration: 3000,
       });
       router.replace(`/recipes/${id}`);
-    });
+    },
+    onError: async (error: string) => {
+      return toast({
+        variant: "destructive",
+        duration: 3000,
+        title: "Failed to save recipe",
+        description: error || "Try again",
+      });
+    },
+  });
+
+  function onSubmit(data: FormSchema) {
+    submitMutation.mutate(data);
   }
 
   const topRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    form.trigger();
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+  // useEffect(() => {
+  //   form.trigger();
+  //   topRef.current?.scrollIntoView({ behavior: "smooth" });
+  // }, []);
 
   return (
     <>
-      <div ref={topRef} />
-      {parsed.status === "error" ? (
-        <>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4 mb-6" />
-            <AlertTitle>Heads up!</AlertTitle>
-            <AlertDescription>
-              This link could not be parsed as a recipe! This could be a blog
-              post, or maybe the recipe is not in a format we support yet.
-              <br />
-              <br />
-              Errors reported:
-              <ul className={cn("mt-4 text-xs", martianMono.className)}>
-                {parsed.errors.map((error, index) => (
-                  <li key={"error-" + index}>{error.message}</li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-
-          <Label className="mt-5 block">Source url</Label>
-          <Input className="mt-2" disabled value={parsed.url} />
-        </>
-      ) : (
+      {/* <div ref={topRef} /> */}
+      {parsed.status !== "error" ? (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -226,50 +209,8 @@ export default function RecipeForm({ parsed }: Props) {
                   </FormItem>
                 )}
               />
-              <Badge
-                className="mb-4"
-                variant={
-                  parsed.status === "success"
-                    ? "success"
-                    : parsed.status === "partial"
-                    ? "warning"
-                    : "destructive"
-                }
-              >
-                {parsed.status}
-              </Badge>
+              {/* */}
             </div>
-            {parsed.status === "partial" ? (
-              <Alert variant="destructive" className="col-span-2">
-                <AlertCircle className="h-4 w-4 mb-6" />
-                <AlertTitle>Heads up!</AlertTitle>
-                <AlertDescription>
-                  This recipe could not be automatically imported! You can still
-                  fill out its data manually though.
-                  <br />
-                  <br />
-                  Errors reported:
-                  <ul
-                    className={cn(
-                      "mt-4 text-xs space-y-3",
-                      martianMono.className
-                    )}
-                  >
-                    {parsed.errors.map((error, index) => (
-                      <li
-                        key={"error-" + index}
-                        className="flex gap-2 items-center flex-wrap"
-                      >
-                        <span className="rounded bg-red-100 px-2 py-1 break-words">
-                          {error.path}
-                        </span>
-                        {error.message}
-                      </li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            ) : null}
             <div className="flex gap-4 col-span-2 flex-col lg:flex-row">
               <img
                 src={form.getValues("imageUrl")}
@@ -453,7 +394,6 @@ export default function RecipeForm({ parsed }: Props) {
                               <Checkbox
                                 checked={field.value?.includes(item)}
                                 onCheckedChange={(checked) => {
-                                  console.log(":::::: field", field);
                                   return checked
                                     ? field.onChange(
                                         field.value
@@ -517,7 +457,7 @@ export default function RecipeForm({ parsed }: Props) {
                             <FormLabel>Set Name</FormLabel>
                             <Button
                               type="button"
-                              variant="destructiveOutline"
+                              variant="destructiveGhost"
                               size="xs"
                               disabled={
                                 ingredientSetsFields.fields.length === 1
@@ -584,7 +524,7 @@ export default function RecipeForm({ parsed }: Props) {
                             <FormLabel>Set Name</FormLabel>
                             <Button
                               type="button"
-                              variant="destructiveOutline"
+                              variant="destructiveGhost"
                               size="xs"
                               disabled={
                                 instructionSetsFields.fields.length === 1
@@ -616,12 +556,18 @@ export default function RecipeForm({ parsed }: Props) {
                 ))}
               </div>
             </div>
-            <Button type="submit" disabled={isLoading}>
-              Submit
+            <Button
+              type="submit"
+              disabled={
+                submitMutation.isLoading ||
+                (formState.isSubmitted && submitMutation.isSuccess)
+              }
+            >
+              {submitMutation.isLoading ? "Wait" : "Submit"}
             </Button>
           </form>
         </Form>
-      )}
+      ) : null}
     </>
   );
 }
@@ -642,7 +588,7 @@ function NestedArrayFormField(props: NestedArrayFormFieldProps) {
   });
 
   return (
-    <div className="md:flex-grow lg:m-0 ml-10 mt-2">
+    <div className="md:flex-grow lg:m-0 lg:ml-10 mt-2">
       <FormFieldArray
         control={props.control}
         // @ts-expect-error inference of nested objects is broken
